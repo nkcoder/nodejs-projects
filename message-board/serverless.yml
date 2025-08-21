@@ -1,0 +1,250 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: daniel2025
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: message-board
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: message-board
+
+stages:
+  prod:
+    observability: true
+  default:
+    observability: false
+    params:
+      userTableName: 'users-table-${sls:stage}'
+      messageTableName: 'messages-table-${sls:stage}'
+      boardTableName: 'boards-table-${sls:stage}'
+      userRegistrationTopic: 'user-registration-topic'
+      messagePostingTopic: 'message-posting-topic'
+      boardCreationQueue: 'board-creation-queue'
+
+provider:
+  name: aws
+  # default stage is dev
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-2
+  # the local aws profile to use to deploy
+  profile: daniel_dev
+  runtime: nodejs22.x
+  deploymentMethod: direct
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [UsersTable, Arn]
+            - Fn::GetAtt: [MessagesTable, Arn]
+            - Fn::GetAtt: [BoardsTable, Arn]
+            - Fn::Sub:
+                - '${UsersTableArn}/index/*'
+                - UsersTableArn:
+                    Fn::GetAtt: [UsersTable, Arn]
+            - Fn::Sub:
+                - '${MessagesTableArn}/index/*'
+                - MessagesTableArn:
+                    Fn::GetAtt: [MessagesTable, Arn]
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - Ref: UserRegistrationTopic
+            - Ref: MessagePostingTopic
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+          Resource:
+            - Fn::GetAtt: [BoardCreationQueue, Arn]
+
+  environment:
+    USERS_TABLE: ${param:userTableName}
+    MESSAGES_TABLE: ${param:messageTableName}
+    BOARDS_TABLE: ${param:boardTableName}
+    REGION: ${self:provider.region}
+    USER_REGISTRATION_TOPIC_ARN:
+      Ref: UserRegistrationTopic
+    MESSAGE_POSTING_TOPIC_ARN:
+      Ref: MessagePostingTopic
+    BOARD_CREATION_QUEUE_ARN:
+      Fn::GetAtt: [BoardCreationQueue, Arn]
+    BOARD_CREATION_QUEUE_URL:
+      Ref: BoardCreationQueue
+
+functions:
+  # API Gateway functions
+  registerUser:
+    handler: src/handlers/user.registerUser
+    events:
+      - httpApi:
+          path: /users/register
+          method: post
+
+  getUserByEmail:
+    handler: src/handlers/user.getUserByEmail
+    events:
+      - httpApi:
+          path: /users/{email}
+          method: get
+
+  listBoards:
+    handler: src/handlers/board.listBoards
+    events:
+      - httpApi:
+          path: /boards
+          method: get
+
+  createBoard:
+    handler: src/handlers/board.createBoard
+    events:
+      - httpApi:
+          path: /boards
+          method: post
+
+  postMessage:
+    handler: src/handlers/message.postMessage
+    events:
+      - httpApi:
+          path: /boards/{boardId}/messages
+          method: post
+
+  # Event driven functions
+  # TODO: for sns, need to figure out how to reference the params
+  processUserRegistration:
+    handler: src/handlers/processors.processUserRegistration
+    events:
+      - sns:
+          arn: !Ref UserRegistrationTopic
+          topicName: 'user-registration-topic'
+
+  processBoardCreation:
+    handler: src/handlers/processors.processBoardCreation
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - BoardCreationQueue
+              - Arn
+
+  processMessagePosting:
+    handler: src/handlers/processors.processMessagePosting
+    events:
+      - sns:
+          arn: !Ref MessagePostingTopic
+          topicName: 'message-posting-topic'
+
+resources:
+  Resources:
+    # users table
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${param:userTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    # boards table
+    BoardsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${param:boardTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+
+    # messages table
+    MessagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${param:messageTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: boardId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: topic
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: boardId-index
+            KeySchema:
+              - AttributeName: boardId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: topic-index
+            KeySchema:
+              - AttributeName: topic
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    # SNS topic for user registration
+    UserRegistrationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${param:userRegistrationTopic}
+
+    # SNS topic for message posting
+    MessagePostingTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${param:messagePostingTopic}
+
+    # SQS queue for board creation
+    BoardCreationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${param:boardCreationQueue}
+
+plugins:
+  - serverless-offline

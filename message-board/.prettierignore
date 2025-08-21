@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+
+# Environment files
+.env*
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+*.generated.*
+*.auto.*
+
+# Compiled files
+*.js.map
+*.d.ts.map
+
+# Documentation
+docs/
+*.md
+
+# Config files that shouldn't be formatted
+.vscode/
+.idea/
+
+# Database files
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

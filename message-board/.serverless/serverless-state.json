@@ -1,0 +1,1954 @@
+{
+  "service": {
+    "service": "message-board",
+    "serviceObject": {
+      "name": "message-board"
+    },
+    "provider": {
+      "name": "aws",
+      "stage": "dev",
+      "region": "ap-southeast-2",
+      "profile": "daniel_dev",
+      "runtime": "nodejs22.x",
+      "deploymentMethod": "direct",
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "UsersTable",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "MessagesTable",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "BoardsTable",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${UsersTableArn}/index/*",
+                    {
+                      "UsersTableArn": {
+                        "Fn::GetAtt": [
+                          "UsersTable",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${MessagesTableArn}/index/*",
+                    {
+                      "MessagesTableArn": {
+                        "Fn::GetAtt": [
+                          "MessagesTable",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sns:Publish"
+              ],
+              "Resource": [
+                {
+                  "Ref": "UserRegistrationTopic"
+                },
+                {
+                  "Ref": "MessagePostingTopic"
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:SendMessage",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "BoardCreationQueue",
+                    "Arn"
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iot:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "environment": {
+        "USERS_TABLE": "users-table-dev",
+        "MESSAGES_TABLE": "messages-table-dev",
+        "BOARDS_TABLE": "boards-table-dev",
+        "REGION": "ap-southeast-2",
+        "USER_REGISTRATION_TOPIC_ARN": {
+          "Ref": "UserRegistrationTopic"
+        },
+        "MESSAGE_POSTING_TOPIC_ARN": {
+          "Ref": "MessagePostingTopic"
+        },
+        "BOARD_CREATION_QUEUE_ARN": {
+          "Fn::GetAtt": [
+            "BoardCreationQueue",
+            "Arn"
+          ]
+        },
+        "BOARD_CREATION_QUEUE_URL": {
+          "Ref": "BoardCreationQueue"
+        }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "RegisterUserLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-registerUser"
+            }
+          },
+          "GetUserByEmailLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-getUserByEmail"
+            }
+          },
+          "ListBoardsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-listBoards"
+            }
+          },
+          "CreateBoardLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-createBoard"
+            }
+          },
+          "PostMessageLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-postMessage"
+            }
+          },
+          "ProcessUserRegistrationLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-processUserRegistration"
+            }
+          },
+          "ProcessBoardCreationLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-processBoardCreation"
+            }
+          },
+          "ProcessMessagePostingLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/message-board-dev-processMessagePosting"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "message-board",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/message-board-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/message-board-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][1]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][3]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "sqs:ReceiveMessage",
+                          "sqs:DeleteMessage",
+                          "sqs:GetQueueAttributes"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "BoardCreationQueue",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "message-board",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "RegisterUserLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-registerUser",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "registerUser"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "RegisterUserLogGroup"
+            ]
+          },
+          "GetUserByEmailLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-getUserByEmail",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "getUserByEmail"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "GetUserByEmailLogGroup"
+            ]
+          },
+          "ListBoardsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-listBoards",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "listBoards"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ListBoardsLogGroup"
+            ]
+          },
+          "CreateBoardLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-createBoard",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "createBoard"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CreateBoardLogGroup"
+            ]
+          },
+          "PostMessageLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-postMessage",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "postMessage"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "PostMessageLogGroup"
+            ]
+          },
+          "ProcessUserRegistrationLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-processUserRegistration",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "processUserRegistration"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ProcessUserRegistrationLogGroup"
+            ]
+          },
+          "ProcessBoardCreationLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-processBoardCreation",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "processBoardCreation"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ProcessBoardCreationLogGroup"
+            ]
+          },
+          "ProcessMessagePostingLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              },
+              "Handler": "index.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "message-board-dev-processMessagePosting",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "MESSAGES_TABLE": "messages-table-dev",
+                  "BOARDS_TABLE": "boards-table-dev",
+                  "REGION": "ap-southeast-2",
+                  "USER_REGISTRATION_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"USER_REGISTRATION_TOPIC_ARN\"]"
+                  },
+                  "MESSAGE_POSTING_TOPIC_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"MESSAGE_POSTING_TOPIC_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_ARN": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_ARN\"]"
+                  },
+                  "BOARD_CREATION_QUEUE_URL": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"BOARD_CREATION_QUEUE_URL\"]"
+                  },
+                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+                  "SLS_SERVICE": "message-board",
+                  "SLS_STAGE": "dev",
+                  "SLS_FUNCTION": "processMessagePosting"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ProcessMessagePostingLogGroup"
+            ]
+          },
+          "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RegisterUserLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetUserByEmailLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ListBoardsLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CreateBoardLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "PostMessageLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ProcessUserRegistrationLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ProcessBoardCreationLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ProcessMessagePostingLambdaFunction"
+              },
+              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            }
+          },
+          "ProcessUserRegistrationSnsSubscriptionUserregistrationtopic": {
+            "Type": "AWS::SNS::Subscription",
+            "Properties": {
+              "TopicArn": {
+                "Ref": "UserRegistrationTopic"
+              },
+              "Protocol": "lambda",
+              "Endpoint": {
+                "Fn::GetAtt": [
+                  "ProcessUserRegistrationLambdaFunction",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "ProcessUserRegistrationLambdaPermissionUserregistrationtopicSNS": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ProcessUserRegistrationLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "sns.amazonaws.com",
+              "SourceArn": {
+                "Ref": "UserRegistrationTopic"
+              }
+            }
+          },
+          "ProcessMessagePostingSnsSubscriptionMessagepostingtopic": {
+            "Type": "AWS::SNS::Subscription",
+            "Properties": {
+              "TopicArn": {
+                "Ref": "MessagePostingTopic"
+              },
+              "Protocol": "lambda",
+              "Endpoint": {
+                "Fn::GetAtt": [
+                  "ProcessMessagePostingLambdaFunction",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "ProcessMessagePostingLambdaPermissionMessagepostingtopicSNS": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ProcessMessagePostingLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "sns.amazonaws.com",
+              "SourceArn": {
+                "Ref": "MessagePostingTopic"
+              }
+            }
+          },
+          "ProcessBoardCreationEventSourceMappingSQSBoardCreationQueue": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "DependsOn": [
+              "IamRoleLambdaExecution"
+            ],
+            "Properties": {
+              "BatchSize": 10,
+              "EventSourceArn": {
+                "Fn::GetAtt": [
+                  "BoardCreationQueue",
+                  "Arn"
+                ]
+              },
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ProcessBoardCreationLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Enabled": true
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-message-board",
+              "ProtocolType": "HTTP"
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "RegisterUserLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "RegisterUserLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationRegisterUser": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"RegisterUserLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostUsersRegister": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /users/register",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationRegisterUser"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationRegisterUser"
+          },
+          "GetUserByEmailLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetUserByEmailLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationGetUserByEmail": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetUserByEmailLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetUsersEmailVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /users/{email}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationGetUserByEmail"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationGetUserByEmail"
+          },
+          "ListBoardsLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ListBoardsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationListBoards": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ListBoardsLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetBoards": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /boards",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationListBoards"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationListBoards"
+          },
+          "CreateBoardLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CreateBoardLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationCreateBoard": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"CreateBoardLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostBoards": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /boards",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationCreateBoard"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationCreateBoard"
+          },
+          "PostMessageLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "PostMessageLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationPostMessage": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"PostMessageLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostBoardsBoardidVarMessages": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /boards/{boardId}/messages",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationPostMessage"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationPostMessage"
+          },
+          "UsersTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "users-table-dev",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "id",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "email",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "id",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "KeyType": "RANGE"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "email-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "email",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          },
+          "BoardsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "boards-table-dev",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "id",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "id",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "KeyType": "RANGE"
+                }
+              ]
+            }
+          },
+          "MessagesTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "messages-table-dev",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "id",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "boardId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "userId",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "topic",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "id",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "createdAt",
+                  "KeyType": "RANGE"
+                }
+              ],
+              "GlobalSecondaryIndexes": [
+                {
+                  "IndexName": "boardId-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "boardId",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                },
+                {
+                  "IndexName": "userId-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "userId",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                },
+                {
+                  "IndexName": "topic-index",
+                  "KeySchema": [
+                    {
+                      "AttributeName": "topic",
+                      "KeyType": "HASH"
+                    }
+                  ],
+                  "Projection": {
+                    "ProjectionType": "ALL"
+                  }
+                }
+              ]
+            }
+          },
+          "UserRegistrationTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+              "TopicName": "user-registration-topic"
+            }
+          },
+          "MessagePostingTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+              "TopicName": "message-posting-topic"
+            }
+          },
+          "BoardCreationQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "board-creation-queue"
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
+            "Export": {
+              "Name": "sls-message-board-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "RegisterUserLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-RegisterUserLambdaFunctionQualifiedArn"
+            }
+          },
+          "GetUserByEmailLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-GetUserByEmailLambdaFunctionQualifiedArn"
+            }
+          },
+          "ListBoardsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-ListBoardsLambdaFunctionQualifiedArn"
+            }
+          },
+          "CreateBoardLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-CreateBoardLambdaFunctionQualifiedArn"
+            }
+          },
+          "PostMessageLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-PostMessageLambdaFunctionQualifiedArn"
+            }
+          },
+          "ProcessUserRegistrationLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-ProcessUserRegistrationLambdaFunctionQualifiedArn"
+            }
+          },
+          "ProcessBoardCreationLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-ProcessBoardCreationLambdaFunctionQualifiedArn"
+            }
+          },
+          "ProcessMessagePostingLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-ProcessMessagePostingLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-message-board-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-offline"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "registerUser": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/users/register",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/users/register"
+          }
+        ],
+        "name": "message-board-dev-registerUser",
+        "originalHandler": "src/handlers/user.registerUser",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "registerUser"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+      },
+      "getUserByEmail": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/users/{email}",
+              "method": "get"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/users/{email}"
+          }
+        ],
+        "name": "message-board-dev-getUserByEmail",
+        "originalHandler": "src/handlers/user.getUserByEmail",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "getUserByEmail"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+      },
+      "listBoards": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/boards",
+              "method": "get"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/boards"
+          }
+        ],
+        "name": "message-board-dev-listBoards",
+        "originalHandler": "src/handlers/board.listBoards",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "listBoards"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+      },
+      "createBoard": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/boards",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/boards"
+          }
+        ],
+        "name": "message-board-dev-createBoard",
+        "originalHandler": "src/handlers/board.createBoard",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "createBoard"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+      },
+      "postMessage": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/boards/{boardId}/messages",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/boards/{boardId}/messages"
+          }
+        ],
+        "name": "message-board-dev-postMessage",
+        "originalHandler": "src/handlers/message.postMessage",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "postMessage"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+      },
+      "processUserRegistration": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "sns": {
+              "arn": {
+                "Ref": "UserRegistrationTopic"
+              },
+              "topicName": "user-registration-topic"
+            }
+          }
+        ],
+        "name": "message-board-dev-processUserRegistration",
+        "originalHandler": "src/handlers/processors.processUserRegistration",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "processUserRegistration"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+      },
+      "processBoardCreation": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "sqs": {
+              "arn": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][6][\"Resource\"][0]"
+              }
+            }
+          }
+        ],
+        "name": "message-board-dev-processBoardCreation",
+        "originalHandler": "src/handlers/processors.processBoardCreation",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "processBoardCreation"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+      },
+      "processMessagePosting": {
+        "handler": "index.handler",
+        "events": [
+          {
+            "sns": {
+              "arn": {
+                "Ref": "MessagePostingTopic"
+              },
+              "topicName": "message-posting-topic"
+            }
+          }
+        ],
+        "name": "message-board-dev-processMessagePosting",
+        "originalHandler": "src/handlers/processors.processMessagePosting",
+        "runtime": "nodejs20.x",
+        "environment": {
+          "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
+          "SLS_SERVICE": "message-board",
+          "SLS_STAGE": "dev",
+          "SLS_FUNCTION": "processMessagePosting"
+        },
+        "package": {
+          "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "vpc": {},
+        "versionLogicalId": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "UsersTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "users-table-dev",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "id",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "email",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "createdAt",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "GlobalSecondaryIndexes": [
+              {
+                "IndexName": "email-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "email",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              }
+            ]
+          }
+        },
+        "BoardsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "boards-table-dev",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "id",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "createdAt",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ]
+          }
+        },
+        "MessagesTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "messages-table-dev",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "id",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "boardId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "userId",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "topic",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "createdAt",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "GlobalSecondaryIndexes": [
+              {
+                "IndexName": "boardId-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "boardId",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              },
+              {
+                "IndexName": "userId-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "userId",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              },
+              {
+                "IndexName": "topic-index",
+                "KeySchema": [
+                  {
+                    "AttributeName": "topic",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "Projection": {
+                  "ProjectionType": "ALL"
+                }
+              }
+            ]
+          }
+        },
+        "UserRegistrationTopic": {
+          "Type": "AWS::SNS::Topic",
+          "Properties": {
+            "TopicName": "user-registration-topic"
+          }
+        },
+        "MessagePostingTopic": {
+          "Type": "AWS::SNS::Topic",
+          "Properties": {
+            "TopicName": "message-posting-topic"
+          }
+        },
+        "BoardCreationQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "board-creation-queue"
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "org": "daniel2025",
+      "app": "message-board",
+      "service": "message-board",
+      "stages": {
+        "prod": {
+          "observability": true
+        },
+        "default": {
+          "observability": false,
+          "params": {
+            "userTableName": "users-table-dev",
+            "messageTableName": "messages-table-dev",
+            "boardTableName": "boards-table-dev",
+            "userRegistrationTopic": "user-registration-topic",
+            "messagePostingTopic": "message-posting-topic",
+            "boardCreationQueue": "board-creation-queue"
+          }
+        }
+      },
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      }
+    },
+    "app": "message-board",
+    "appId": null,
+    "org": "daniel2025",
+    "orgId": null,
+    "layers": {}
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z",
+    "artifact": "message-board.zip"
+  }
+}
