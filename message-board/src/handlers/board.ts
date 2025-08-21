@@ -23,8 +23,8 @@ export const createBoard = async (event: APIGatewayProxyEvent): Promise<APIGatew
   };
 };
 
-export const listBoards = async (_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.info('Received list boards request');
+export const listBoards = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  console.info(`Received list boards request: ${JSON.stringify(event)}`);
 
   const boards = await boardService.listBoards();
 
