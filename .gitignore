@@ -5,3 +5,6 @@
 
 references/*/
 **/coverage/
+
+.build/
+.serverless/build/

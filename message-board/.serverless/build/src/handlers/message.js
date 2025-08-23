@@ -17,14 +17,14 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/handlers/processors.ts
-var processors_exports = {};
-__export(processors_exports, {
-  processBoardCreation: () => processBoardCreation,
-  processMessagePosting: () => processMessagePosting,
-  processUserRegistration: () => processUserRegistration
+// src/handlers/message.ts
+var message_exports = {};
+__export(message_exports, {
+  listMessages: () => listMessages,
+  postMessage: () => postMessage
 });
-module.exports = __toCommonJS(processors_exports);
+module.exports = __toCommonJS(message_exports);
+var import_client_sns2 = require("@aws-sdk/client-sns");
 
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -11169,33 +11169,6 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// src/schema/userSchema.ts
-var registerUserSchema = external_exports.object({
-  email: external_exports.email(),
-  name: external_exports.string().min(2).max(30)
-});
-var userSchema = external_exports.object({
-  id: external_exports.string(),
-  email: external_exports.email(),
-  name: external_exports.string().min(2).max(30),
-  createdAt: external_exports.iso.datetime()
-});
-var getUserByEmailSchema = external_exports.object({
-  email: external_exports.email()
-});
-
-// src/schema/boardSchema.ts
-var createBoardSchema = external_exports.object({
-  name: external_exports.string().min(2).max(100),
-  createdBy: external_exports.string()
-});
-var boardSchema = external_exports.object({
-  id: external_exports.string(),
-  name: external_exports.string().min(2).max(100),
-  createdBy: external_exports.string(),
-  createdAt: external_exports.string()
-});
-
 // src/schema/messageSchema.ts
 var postMessageSchema = external_exports.object({
   topic: external_exports.string().min(1).max(200),
@@ -11212,8 +11185,21 @@ var messageSchema = external_exports.object({
   createdAt: external_exports.string()
 });
 
-// src/services/userService.ts
-var import_lib_dynamodb2 = require("@aws-sdk/lib-dynamodb");
+// src/schema/pathParamsSchema.ts
+var emailParamSchema = external_exports.object({
+  email: external_exports.email()
+});
+var boardIdParamSchema = external_exports.object({
+  boardId: external_exports.string().min(1)
+});
+function validateBoardIdParam(boardId) {
+  try {
+    const result = boardIdParamSchema.parse({ boardId });
+    return result.boardId;
+  } catch {
+    throw new Error("Invalid board ID format");
+  }
+}
 
 // src/services/aws.ts
 var import_client_dynamodb = require("@aws-sdk/client-dynamodb");
@@ -11221,223 +11207,179 @@ var import_client_sns = require("@aws-sdk/client-sns");
 var import_client_sqs = require("@aws-sdk/client-sqs");
 var import_lib_dynamodb = require("@aws-sdk/lib-dynamodb");
 var region = process.env.AWS_REGION ?? "ap-southeast-2";
+var snsClient = () => new import_client_sns.SNSClient({ region });
 var dynamoDbClient = () => {
   const client = new import_client_dynamodb.DynamoDBClient({ region });
   return import_lib_dynamodb.DynamoDBDocument.from(client);
 };
 
-// src/services/idGenerator.ts
-var generateId = () => {
-  return crypto.randomUUID();
-};
-
-// src/services/userService.ts
-var createUser = async (email3, name) => {
-  const existingUser = await getUserByEmail(email3);
-  if (existingUser !== null) {
-    throw new Error(`User with email ${email3} already exists`);
-  }
-  const id = generateId();
-  const db = dynamoDbClient();
-  await db.send(
-    new import_lib_dynamodb2.PutCommand({
-      TableName: process.env.USERS_TABLE,
-      Item: {
-        id,
-        email: email3,
-        name,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }
-    })
-  );
-  return id;
-};
-var getUserByEmail = async (email3) => {
+// src/services/messageService.ts
+var import_lib_dynamodb2 = require("@aws-sdk/lib-dynamodb");
+var getMessagesByBoardId = async (boardId) => {
   const db = dynamoDbClient();
   const result = await db.send(
     new import_lib_dynamodb2.QueryCommand({
-      TableName: process.env.USERS_TABLE,
-      IndexName: "email-index",
-      KeyConditionExpression: "email = :email",
+      TableName: process.env.MESSAGES_TABLE,
+      IndexName: "boardId-index",
+      KeyConditionExpression: "boardId = :boardId",
       ExpressionAttributeValues: {
-        ":email": email3
+        ":boardId": boardId
       }
     })
   );
   if (!result.Items || result.Items.length === 0) {
-    return null;
+    return [];
   }
-  console.log(`result: ${JSON.stringify(result.Items[0])}`);
-  return userSchema.parse(result.Items[0]);
+  return result.Items.map((item) => messageSchema.parse(item));
 };
 
-// src/services/boardService.ts
-var import_lib_dynamodb3 = require("@aws-sdk/lib-dynamodb");
-var createBoard = async (name, createdBy) => {
-  const id = generateId();
-  const db = dynamoDbClient();
-  await db.send(
-    new import_lib_dynamodb3.PutCommand({
-      TableName: process.env.BOARDS_TABLE,
-      Item: {
-        id,
-        name,
-        createdBy,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }
-    })
-  );
-  return id;
-};
-
-// src/services/messageService.ts
-var import_lib_dynamodb4 = require("@aws-sdk/lib-dynamodb");
-var createMessage = async (topic, data, boardId, userId) => {
-  const id = generateId();
-  const db = dynamoDbClient();
-  await db.send(
-    new import_lib_dynamodb4.PutCommand({
-      TableName: process.env.MESSAGES_TABLE,
-      Item: {
-        id,
-        topic,
-        data,
-        boardId,
-        userId,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }
-    })
-  );
-  return id;
-};
-
-// src/utils/messageParser.ts
-var MessageParsingError = class extends Error {
-  constructor(message, cause) {
+// src/utils/apiHelpers.ts
+var ApiError = class extends Error {
+  constructor(statusCode, message, cause) {
     super(message);
+    this.statusCode = statusCode;
     this.cause = cause;
-    this.name = "MessageParsingError";
+    this.name = "ApiError";
   }
 };
-function safeJsonParse(jsonString) {
+function parseRequestBody(body) {
+  if (!body || body.trim() === "") {
+    throw new ApiError(400, "Request body is required");
+  }
   try {
-    return JSON.parse(jsonString);
+    return JSON.parse(body);
   } catch (error40) {
-    throw new MessageParsingError(
-      `Failed to parse JSON: ${jsonString}`,
+    throw new ApiError(
+      400,
+      "Invalid JSON in request body",
       error40 instanceof Error ? error40 : new Error(String(error40))
     );
   }
 }
-function parseSnsMessage(record2, schema) {
-  try {
-    const messageContent = safeJsonParse(record2.Sns.Message);
-    return schema.parse(messageContent);
-  } catch (error40) {
-    if (error40 instanceof MessageParsingError) {
-      throw error40;
-    }
-    throw new MessageParsingError(
-      `Failed to validate SNS message against schema`,
-      error40 instanceof Error ? error40 : new Error(String(error40))
-    );
+function getPathParameter(event, paramName) {
+  const value = event.pathParameters?.[paramName];
+  if (!value || value.trim() === "") {
+    throw new ApiError(400, `${paramName} parameter is required`);
   }
+  return decodeURIComponent(value);
 }
-function parseSqsMessage(record2, schema) {
-  try {
-    const messageContent = safeJsonParse(record2.body);
-    return schema.parse(messageContent);
-  } catch (error40) {
-    if (error40 instanceof MessageParsingError) {
-      throw error40;
+function createSuccessResponse(data, statusCode = 200) {
+  const response = {
+    success: true,
+    data
+  };
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function createAcceptedResponse(message) {
+  const response = {
+    success: true,
+    data: { message }
+  };
+  return {
+    statusCode: 202,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function createErrorResponse(error40, statusCode) {
+  const code = statusCode || (error40 instanceof ApiError ? error40.statusCode : 500);
+  const response = {
+    success: false,
+    error: {
+      message: error40.message,
+      code: error40.name
     }
-    throw new MessageParsingError(
-      `Failed to validate SQS message against schema`,
-      error40 instanceof Error ? error40 : new Error(String(error40))
-    );
-  }
+  };
+  return {
+    statusCode: code,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function logRequest(operation, event, additionalData) {
+  console.info("API Request", {
+    operation,
+    method: event.httpMethod,
+    path: event.path,
+    pathParameters: event.pathParameters,
+    queryStringParameters: event.queryStringParameters,
+    requestId: event.requestContext.requestId,
+    ...additionalData ? { data: additionalData } : {}
+  });
+}
+function logSuccess(operation, result, requestId) {
+  console.info("API Success", {
+    operation,
+    result: typeof result === "object" ? "object" : result,
+    requestId
+  });
+}
+function logError(operation, error40, requestId) {
+  console.error("API Error", {
+    operation,
+    error: error40.message,
+    stack: error40.stack,
+    cause: error40.cause instanceof Error ? error40.cause.message : error40.cause,
+    requestId
+  });
+}
+function withErrorHandling(operation, handler) {
+  return async (event) => {
+    const requestId = event.requestContext.requestId;
+    try {
+      logRequest(operation, event);
+      const result = await handler(event);
+      logSuccess(operation, { statusCode: result.statusCode }, requestId);
+      return result;
+    } catch (error40) {
+      const apiError = error40 instanceof Error ? error40 : new Error(String(error40));
+      logError(operation, apiError, requestId);
+      return createErrorResponse(apiError);
+    }
+  };
 }
 
-// src/handlers/processors.ts
-var processUserRegistration = async (event) => {
-  console.info(`Received user registration requests: ${JSON.stringify(event)}`);
-  const results = await Promise.allSettled(
-    event.Records.map(async (record2) => {
-      try {
-        const registerRequest = parseSnsMessage(record2, registerUserSchema);
-        const id = await createUser(registerRequest.email, registerRequest.name);
-        console.info(`Created user, id: ${id}, name: ${registerRequest.name}, email: ${registerRequest.email}`);
-        return { success: true, id };
-      } catch (error40) {
-        console.error(`Failed to process user registration record:`, {
-          messageId: record2.Sns.MessageId,
-          error: error40 instanceof Error ? error40.message : String(error40),
-          cause: error40 instanceof MessageParsingError ? error40.cause?.message : void 0
-        });
-        return { success: false, error: error40 };
-      }
-    })
-  );
-  const successful = results.filter((result) => result.status === "fulfilled" && result.value.success).length;
-  const failed = results.length - successful;
-  console.info(
-    `Processed ${event.Records.length} user registration requests: ${successful} successful, ${failed} failed`
-  );
+// src/handlers/message.ts
+var handlePostMessage = async (event) => {
+  const boardId = getPathParameter(event, "boardId");
+  const validatedBoardId = validateBoardIdParam(boardId);
+  const requestBody = parseRequestBody(event.body);
+  const postRequest = postMessageSchema.parse({
+    ...requestBody,
+    boardId: validatedBoardId
+  });
+  const topicArn = process.env.MESSAGE_POSTING_TOPIC_ARN;
+  if (!topicArn) {
+    throw new ApiError(500, "Message posting topic not configured");
+  }
+  const command = new import_client_sns2.PublishCommand({
+    TopicArn: topicArn,
+    Message: JSON.stringify(postRequest)
+  });
+  await snsClient().send(command);
+  return createAcceptedResponse("Message posting request is accepted.");
 };
-var processBoardCreation = async (event) => {
-  console.info(`Received board creation requests: ${JSON.stringify(event)}`);
-  const results = await Promise.allSettled(
-    event.Records.map(async (record2) => {
-      try {
-        const createRequest = parseSqsMessage(record2, createBoardSchema);
-        const id = await createBoard(createRequest.name, createRequest.createdBy);
-        console.info(`Created board, id: ${id}, name: ${createRequest.name}, createdBy: ${createRequest.createdBy}`);
-        return { success: true, id };
-      } catch (error40) {
-        console.error(`Failed to process board creation record:`, {
-          messageId: record2.messageId,
-          error: error40 instanceof Error ? error40.message : String(error40),
-          cause: error40 instanceof MessageParsingError ? error40.cause?.message : void 0
-        });
-        return { success: false, error: error40 };
-      }
-    })
-  );
-  const successful = results.filter((result) => result.status === "fulfilled" && result.value.success).length;
-  const failed = results.length - successful;
-  console.info(`Processed ${event.Records.length} board creation requests: ${successful} successful, ${failed} failed`);
+var handleListMessages = async (event) => {
+  const boardId = getPathParameter(event, "boardId");
+  const validatedBoardId = validateBoardIdParam(boardId);
+  const messages = await getMessagesByBoardId(validatedBoardId);
+  return createSuccessResponse(messages);
 };
-var processMessagePosting = async (event) => {
-  console.info(`Received message posting requests: ${JSON.stringify(event)}`);
-  const results = await Promise.allSettled(
-    event.Records.map(async (record2) => {
-      try {
-        const postRequest = parseSnsMessage(record2, postMessageSchema);
-        const id = await createMessage(postRequest.topic, postRequest.data, postRequest.boardId, postRequest.userId);
-        console.info(
-          `Created message, id: ${id}, topic: ${postRequest.topic}, boardId: ${postRequest.boardId}, userId: ${postRequest.userId}`
-        );
-        return { success: true, id };
-      } catch (error40) {
-        console.error(`Failed to process message posting record:`, {
-          messageId: record2.Sns.MessageId,
-          error: error40 instanceof Error ? error40.message : String(error40),
-          cause: error40 instanceof MessageParsingError ? error40.cause?.message : void 0
-        });
-        return { success: false, error: error40 };
-      }
-    })
-  );
-  const successful = results.filter((result) => result.status === "fulfilled" && result.value.success).length;
-  const failed = results.length - successful;
-  console.info(
-    `Processed ${event.Records.length} message posting requests: ${successful} successful, ${failed} failed`
-  );
-};
+var postMessage = withErrorHandling("postMessage", handlePostMessage);
+var listMessages = withErrorHandling("listMessages", handleListMessages);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  processBoardCreation,
-  processMessagePosting,
-  processUserRegistration
+  listMessages,
+  postMessage
 });
-//# sourceMappingURL=processors.js.map
+//# sourceMappingURL=message.js.map

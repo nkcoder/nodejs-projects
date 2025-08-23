@@ -68,9 +68,9 @@ describe('user handler', () => {
       const result = await registerUser(event);
 
       expect(result.statusCode).toBe(202);
-      expect(JSON.parse(result.body)).toEqual({
-        message: 'User registration request is accepted.',
-      });
+      const body = JSON.parse(result.body);
+      expect(body.success).toBe(true);
+      expect(body.data.message).toBe('User registration request is accepted.');
 
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(expect.any(PublishCommand));
@@ -212,7 +212,9 @@ describe('user handler', () => {
       const result = await getUserByEmail(event);
 
       expect(result.statusCode).toBe(200);
-      expect(JSON.parse(result.body)).toEqual(user);
+      const body = JSON.parse(result.body);
+      expect(body.success).toBe(true);
+      expect(body.data).toEqual(user);
     });
 
     it('should handle user not found', async () => {
@@ -229,9 +231,9 @@ describe('user handler', () => {
       const result = await getUserByEmail(event);
 
       expect(result.statusCode).toBe(404);
-      expect(JSON.parse(result.body)).toEqual({
-        message: `User with email ${email} not found`,
-      });
+      const body = JSON.parse(result.body);
+      expect(body.success).toBe(false);
+      expect(body.error.message).toBe(`User with email ${email} not found`);
     });
 
     it('should handle missing email parameter', async () => {
@@ -243,9 +245,9 @@ describe('user handler', () => {
       const result = await getUserByEmail(event);
 
       expect(result.statusCode).toBe(400);
-      expect(JSON.parse(result.body)).toEqual({
-        message: 'Email parameter is required',
-      });
+      const body = JSON.parse(result.body);
+      expect(body.success).toBe(false);
+      expect(body.error.message).toBe('email parameter is required');
     });
 
     it('should handle invalid email format', async () => {
@@ -259,9 +261,9 @@ describe('user handler', () => {
       const result = await getUserByEmail(event);
 
       expect(result.statusCode).toBe(400);
-      expect(JSON.parse(result.body)).toEqual({
-        message: 'Invalid email format',
-      });
+      const body = JSON.parse(result.body);
+      expect(body.success).toBe(false);
+      expect(body.error.message).toBe('Invalid email format');
     });
   });
 });

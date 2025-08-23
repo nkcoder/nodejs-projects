@@ -1,0 +1,21 @@
+{
+  "name": "message-board",
+  "version": "1.0.0",
+  "description": "A message board where users can create boards and post messages to them.",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "sls deploy",
+    "dev": "sls dev",
+    "offline": "sls offline --stage local",
+    "prune": "sls prune",
+    "remove": "sls remove",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "test": "vitest run",
+    "test_ui": "vitest --ui",
+    "test_coverage": "vitest run --coverage",
+    "prepare": "husky"
+  },
+  "dependencies": {}
+}

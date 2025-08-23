@@ -90,9 +90,9 @@ const user_1 = require("../../src/handlers/user");
             const event = createEvent(requestBody);
             const result = await (0, user_1.registerUser)(event);
             (0, vitest_1.expect)(result.statusCode).toBe(202);
-            (0, vitest_1.expect)(JSON.parse(result.body)).toEqual({
-                message: 'User registration request is accepted.',
-            });
+            const body = JSON.parse(result.body);
+            (0, vitest_1.expect)(body.success).toBe(true);
+            (0, vitest_1.expect)(body.data.message).toBe('User registration request is accepted.');
             (0, vitest_1.expect)(mockSend).toHaveBeenCalledTimes(1);
             (0, vitest_1.expect)(mockSend).toHaveBeenCalledWith(vitest_1.expect.any(client_sns_1.PublishCommand));
             const publishCommand = mockSend.mock.calls[0][0];
@@ -198,7 +198,9 @@ const user_1 = require("../../src/handlers/user");
             };
             const result = await (0, user_1.getUserByEmail)(event);
             (0, vitest_1.expect)(result.statusCode).toBe(200);
-            (0, vitest_1.expect)(JSON.parse(result.body)).toEqual(user);
+            const body = JSON.parse(result.body);
+            (0, vitest_1.expect)(body.success).toBe(true);
+            (0, vitest_1.expect)(body.data).toEqual(user);
         });
         (0, vitest_1.it)('should handle user not found', async () => {
             const email = 'test@example.com';
@@ -210,9 +212,9 @@ const user_1 = require("../../src/handlers/user");
             };
             const result = await (0, user_1.getUserByEmail)(event);
             (0, vitest_1.expect)(result.statusCode).toBe(404);
-            (0, vitest_1.expect)(JSON.parse(result.body)).toEqual({
-                message: `User with email ${email} not found`,
-            });
+            const body = JSON.parse(result.body);
+            (0, vitest_1.expect)(body.success).toBe(false);
+            (0, vitest_1.expect)(body.error.message).toBe(`User with email ${email} not found`);
         });
         (0, vitest_1.it)('should handle missing email parameter', async () => {
             const event = {
@@ -221,9 +223,9 @@ const user_1 = require("../../src/handlers/user");
             };
             const result = await (0, user_1.getUserByEmail)(event);
             (0, vitest_1.expect)(result.statusCode).toBe(400);
-            (0, vitest_1.expect)(JSON.parse(result.body)).toEqual({
-                message: 'Email parameter is required',
-            });
+            const body = JSON.parse(result.body);
+            (0, vitest_1.expect)(body.success).toBe(false);
+            (0, vitest_1.expect)(body.error.message).toBe('email parameter is required');
         });
         (0, vitest_1.it)('should handle invalid email format', async () => {
             const invalidEmail = 'invalid-email';
@@ -233,9 +235,9 @@ const user_1 = require("../../src/handlers/user");
             };
             const result = await (0, user_1.getUserByEmail)(event);
             (0, vitest_1.expect)(result.statusCode).toBe(400);
-            (0, vitest_1.expect)(JSON.parse(result.body)).toEqual({
-                message: 'Invalid email format',
-            });
+            const body = JSON.parse(result.body);
+            (0, vitest_1.expect)(body.success).toBe(false);
+            (0, vitest_1.expect)(body.error.message).toBe('Invalid email format');
         });
     });
 });

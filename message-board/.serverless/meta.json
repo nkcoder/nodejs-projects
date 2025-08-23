@@ -1,7 +1,7 @@
 {
-  "/Users/ling/projects/playground/message-board/serverless.yml": {
-    "versionFramework": "4.17.2",
-    "servicePath": "/Users/ling/projects/playground/message-board/serverless.yml",
+  "/Users/ling/projects/nodejs-space/message-board/serverless.yml": {
+    "versionFramework": "4.18.1",
+    "servicePath": "/Users/ling/projects/nodejs-space/message-board/serverless.yml",
     "serviceConfigFileName": "serverless.yml",
     "service": {
       "org": "daniel2025",
@@ -120,13 +120,6 @@
                     ]
                   }
                 ]
-              },
-              {
-                "Effect": "Allow",
-                "Action": [
-                  "iot:*"
-                ],
-                "Resource": "*"
               }
             ]
           }
@@ -354,13 +347,6 @@
                         {
                           "Effect": "Allow",
                           "Action": [
-                            "iot:*"
-                          ],
-                          "Resource": "*"
-                        },
-                        {
-                          "Effect": "Allow",
-                          "Action": [
                             "sqs:ReceiveMessage",
                             "sqs:DeleteMessage",
                             "sqs:GetQueueAttributes"
@@ -399,10 +385,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/user.registerUser",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-registerUser",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -427,10 +413,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "registerUser"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -449,10 +432,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/user.getUserByEmail",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-getUserByEmail",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -477,10 +460,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "getUserByEmail"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -499,10 +479,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/board.listBoards",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-listBoards",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -527,10 +507,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "listBoards"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -549,10 +526,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/board.createBoard",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-createBoard",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -577,10 +554,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "createBoard"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -599,10 +573,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/message.postMessage",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-postMessage",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -627,10 +601,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "postMessage"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -649,10 +620,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/processors.processUserRegistration",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-processUserRegistration",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -677,10 +648,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "processUserRegistration"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -699,10 +667,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/processors.processBoardCreation",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-processBoardCreation",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -727,10 +695,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "processBoardCreation"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -749,10 +714,10 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                  "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                  "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
                 },
-                "Handler": "index.handler",
-                "Runtime": "nodejs20.x",
+                "Handler": "src/handlers/processors.processMessagePosting",
+                "Runtime": "nodejs22.x",
                 "FunctionName": "message-board-dev-processMessagePosting",
                 "MemorySize": 1024,
                 "Timeout": 6,
@@ -777,10 +742,7 @@
                     "BOARD_CREATION_QUEUE_URL": {
                       "Ref": "BoardCreationQueue"
                     },
-                    "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                    "SLS_SERVICE": "message-board",
-                    "SLS_STAGE": "dev",
-                    "SLS_FUNCTION": "processMessagePosting"
+                    "NODE_OPTIONS": "--enable-source-maps"
                   }
                 },
                 "Role": {
@@ -794,84 +756,84 @@
                 "ProcessMessagePostingLogGroup"
               ]
             },
-            "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk": {
+            "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "RegisterUserLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4": {
+            "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "GetUserByEmailLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak": {
+            "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ListBoardsLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58": {
+            "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "CreateBoardLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY": {
+            "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "PostMessageLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo": {
+            "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ProcessUserRegistrationLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI": {
+            "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ProcessBoardCreationLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
-            "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA": {
+            "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ProcessMessagePostingLambdaFunction"
                 },
-                "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+                "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
               }
             },
             "ProcessUserRegistrationSnsSubscriptionUserregistrationtopic": {
@@ -1531,7 +1493,7 @@
             "RegisterUserLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+                "Ref": "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo"
               },
               "Export": {
                 "Name": "sls-message-board-dev-RegisterUserLambdaFunctionQualifiedArn"
@@ -1540,7 +1502,7 @@
             "GetUserByEmailLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+                "Ref": "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc"
               },
               "Export": {
                 "Name": "sls-message-board-dev-GetUserByEmailLambdaFunctionQualifiedArn"
@@ -1549,7 +1511,7 @@
             "ListBoardsLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+                "Ref": "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw"
               },
               "Export": {
                 "Name": "sls-message-board-dev-ListBoardsLambdaFunctionQualifiedArn"
@@ -1558,7 +1520,7 @@
             "CreateBoardLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+                "Ref": "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8"
               },
               "Export": {
                 "Name": "sls-message-board-dev-CreateBoardLambdaFunctionQualifiedArn"
@@ -1567,7 +1529,7 @@
             "PostMessageLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+                "Ref": "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o"
               },
               "Export": {
                 "Name": "sls-message-board-dev-PostMessageLambdaFunctionQualifiedArn"
@@ -1576,7 +1538,7 @@
             "ProcessUserRegistrationLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+                "Ref": "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA"
               },
               "Export": {
                 "Name": "sls-message-board-dev-ProcessUserRegistrationLambdaFunctionQualifiedArn"
@@ -1585,7 +1547,7 @@
             "ProcessBoardCreationLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+                "Ref": "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI"
               },
               "Export": {
                 "Name": "sls-message-board-dev-ProcessBoardCreationLambdaFunctionQualifiedArn"
@@ -1594,7 +1556,7 @@
             "ProcessMessagePostingLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+                "Ref": "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ"
               },
               "Export": {
                 "Name": "sls-message-board-dev-ProcessMessagePostingLambdaFunctionQualifiedArn"
@@ -1640,7 +1602,7 @@
       },
       "functions": {
         "registerUser": {
-          "handler": "index.handler",
+          "handler": "src/handlers/user.registerUser",
           "events": [
             {
               "httpApi": {
@@ -1652,24 +1614,18 @@
             }
           ],
           "name": "message-board-dev-registerUser",
-          "originalHandler": "src/handlers/user.registerUser",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "registerUser"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+          "versionLogicalId": "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo"
         },
         "getUserByEmail": {
-          "handler": "index.handler",
+          "handler": "src/handlers/user.getUserByEmail",
           "events": [
             {
               "httpApi": {
@@ -1681,24 +1637,18 @@
             }
           ],
           "name": "message-board-dev-getUserByEmail",
-          "originalHandler": "src/handlers/user.getUserByEmail",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "getUserByEmail"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+          "versionLogicalId": "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc"
         },
         "listBoards": {
-          "handler": "index.handler",
+          "handler": "src/handlers/board.listBoards",
           "events": [
             {
               "httpApi": {
@@ -1710,24 +1660,18 @@
             }
           ],
           "name": "message-board-dev-listBoards",
-          "originalHandler": "src/handlers/board.listBoards",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "listBoards"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+          "versionLogicalId": "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw"
         },
         "createBoard": {
-          "handler": "index.handler",
+          "handler": "src/handlers/board.createBoard",
           "events": [
             {
               "httpApi": {
@@ -1739,24 +1683,18 @@
             }
           ],
           "name": "message-board-dev-createBoard",
-          "originalHandler": "src/handlers/board.createBoard",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "createBoard"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+          "versionLogicalId": "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8"
         },
         "postMessage": {
-          "handler": "index.handler",
+          "handler": "src/handlers/message.postMessage",
           "events": [
             {
               "httpApi": {
@@ -1768,24 +1706,18 @@
             }
           ],
           "name": "message-board-dev-postMessage",
-          "originalHandler": "src/handlers/message.postMessage",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "postMessage"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+          "versionLogicalId": "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o"
         },
         "processUserRegistration": {
-          "handler": "index.handler",
+          "handler": "src/handlers/processors.processUserRegistration",
           "events": [
             {
               "sns": {
@@ -1797,24 +1729,18 @@
             }
           ],
           "name": "message-board-dev-processUserRegistration",
-          "originalHandler": "src/handlers/processors.processUserRegistration",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "processUserRegistration"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+          "versionLogicalId": "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA"
         },
         "processBoardCreation": {
-          "handler": "index.handler",
+          "handler": "src/handlers/processors.processBoardCreation",
           "events": [
             {
               "sqs": {
@@ -1828,24 +1754,18 @@
             }
           ],
           "name": "message-board-dev-processBoardCreation",
-          "originalHandler": "src/handlers/processors.processBoardCreation",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "processBoardCreation"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+          "versionLogicalId": "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI"
         },
         "processMessagePosting": {
-          "handler": "index.handler",
+          "handler": "src/handlers/processors.processMessagePosting",
           "events": [
             {
               "sns": {
@@ -1857,21 +1777,15 @@
             }
           ],
           "name": "message-board-dev-processMessagePosting",
-          "originalHandler": "src/handlers/processors.processMessagePosting",
-          "runtime": "nodejs20.x",
           "environment": {
-            "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-            "SLS_SERVICE": "message-board",
-            "SLS_STAGE": "dev",
-            "SLS_FUNCTION": "processMessagePosting"
+            "NODE_OPTIONS": "--enable-source-maps"
           },
-          "package": {
-            "artifact": "/Users/ling/projects/playground/message-board/.serverless/message-board.zip"
-          },
+          "package": {},
           "memory": 1024,
           "timeout": 6,
+          "runtime": "nodejs22.x",
           "vpc": {},
-          "versionLogicalId": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+          "versionLogicalId": "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ"
         }
       },
       "resources": {
@@ -2147,13 +2061,6 @@
                   ]
                 }
               ]
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "iot:*"
-              ],
-              "Resource": "*"
             }
           ]
         }
@@ -2381,13 +2288,6 @@
                       {
                         "Effect": "Allow",
                         "Action": [
-                          "iot:*"
-                        ],
-                        "Resource": "*"
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
                           "sqs:ReceiveMessage",
                           "sqs:DeleteMessage",
                           "sqs:GetQueueAttributes"
@@ -2426,10 +2326,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/user.registerUser",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-registerUser",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2454,10 +2354,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "registerUser"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2476,10 +2373,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/user.getUserByEmail",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-getUserByEmail",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2504,10 +2401,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "getUserByEmail"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2526,10 +2420,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/board.listBoards",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-listBoards",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2554,10 +2448,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "listBoards"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2576,10 +2467,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/board.createBoard",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-createBoard",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2604,10 +2495,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "createBoard"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2626,10 +2514,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/message.postMessage",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-postMessage",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2654,10 +2542,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "postMessage"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2676,10 +2561,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/processors.processUserRegistration",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-processUserRegistration",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2704,10 +2589,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "processUserRegistration"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2726,10 +2608,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/processors.processBoardCreation",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-processBoardCreation",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2754,10 +2636,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "processBoardCreation"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2776,10 +2655,10 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-                "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+                "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
               },
-              "Handler": "index.handler",
-              "Runtime": "nodejs20.x",
+              "Handler": "src/handlers/processors.processMessagePosting",
+              "Runtime": "nodejs22.x",
               "FunctionName": "message-board-dev-processMessagePosting",
               "MemorySize": 1024,
               "Timeout": 6,
@@ -2804,10 +2683,7 @@
                   "BOARD_CREATION_QUEUE_URL": {
                     "Ref": "BoardCreationQueue"
                   },
-                  "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                  "SLS_SERVICE": "message-board",
-                  "SLS_STAGE": "dev",
-                  "SLS_FUNCTION": "processMessagePosting"
+                  "NODE_OPTIONS": "--enable-source-maps"
                 }
               },
               "Role": {
@@ -2821,84 +2697,84 @@
               "ProcessMessagePostingLogGroup"
             ]
           },
-          "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk": {
+          "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "RegisterUserLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4": {
+          "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetUserByEmailLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak": {
+          "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ListBoardsLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58": {
+          "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateBoardLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY": {
+          "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "PostMessageLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo": {
+          "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ProcessUserRegistrationLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI": {
+          "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ProcessBoardCreationLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
-          "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA": {
+          "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ProcessMessagePostingLambdaFunction"
               },
-              "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+              "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
             }
           },
           "ProcessUserRegistrationSnsSubscriptionUserregistrationtopic": {
@@ -3558,7 +3434,7 @@
           "RegisterUserLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+              "Ref": "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo"
             },
             "Export": {
               "Name": "sls-message-board-dev-RegisterUserLambdaFunctionQualifiedArn"
@@ -3567,7 +3443,7 @@
           "GetUserByEmailLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+              "Ref": "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc"
             },
             "Export": {
               "Name": "sls-message-board-dev-GetUserByEmailLambdaFunctionQualifiedArn"
@@ -3576,7 +3452,7 @@
           "ListBoardsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+              "Ref": "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw"
             },
             "Export": {
               "Name": "sls-message-board-dev-ListBoardsLambdaFunctionQualifiedArn"
@@ -3585,7 +3461,7 @@
           "CreateBoardLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+              "Ref": "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8"
             },
             "Export": {
               "Name": "sls-message-board-dev-CreateBoardLambdaFunctionQualifiedArn"
@@ -3594,7 +3470,7 @@
           "PostMessageLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+              "Ref": "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o"
             },
             "Export": {
               "Name": "sls-message-board-dev-PostMessageLambdaFunctionQualifiedArn"
@@ -3603,7 +3479,7 @@
           "ProcessUserRegistrationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+              "Ref": "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA"
             },
             "Export": {
               "Name": "sls-message-board-dev-ProcessUserRegistrationLambdaFunctionQualifiedArn"
@@ -3612,7 +3488,7 @@
           "ProcessBoardCreationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+              "Ref": "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI"
             },
             "Export": {
               "Name": "sls-message-board-dev-ProcessBoardCreationLambdaFunctionQualifiedArn"
@@ -3621,7 +3497,7 @@
           "ProcessMessagePostingLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+              "Ref": "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ"
             },
             "Export": {
               "Name": "sls-message-board-dev-ProcessMessagePostingLambdaFunctionQualifiedArn"
@@ -3679,7 +3555,7 @@
     },
     "serviceRawFile": "# \"org\" ensures this Service is used with the correct Serverless Framework Access Key.\norg: daniel2025\n# \"app\" enables Serverless Framework Dashboard features and sharing them with other Services.\napp: message-board\n# \"service\" is the name of this project. This will also be added to your AWS resource names.\nservice: message-board\n\nstages:\n  prod:\n    observability: true\n  default:\n    observability: false\n    params:\n      userTableName: 'users-table-${sls:stage}'\n      messageTableName: 'messages-table-${sls:stage}'\n      boardTableName: 'boards-table-${sls:stage}'\n      userRegistrationTopic: 'user-registration-topic'\n      messagePostingTopic: 'message-posting-topic'\n      boardCreationQueue: 'board-creation-queue'\n\nprovider:\n  name: aws\n  # default stage is dev\n  stage: ${opt:stage, 'dev'}\n  region: ap-southeast-2\n  # the local aws profile to use to deploy\n  profile: daniel_dev\n  runtime: nodejs22.x\n  deploymentMethod: direct\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - dynamodb:Query\n            - dynamodb:Scan\n            - dynamodb:GetItem\n            - dynamodb:PutItem\n            - dynamodb:UpdateItem\n            - dynamodb:DeleteItem\n          Resource:\n            - Fn::GetAtt: [UsersTable, Arn]\n            - Fn::GetAtt: [MessagesTable, Arn]\n            - Fn::GetAtt: [BoardsTable, Arn]\n            - Fn::Sub:\n                - '${UsersTableArn}/index/*'\n                - UsersTableArn:\n                    Fn::GetAtt: [UsersTable, Arn]\n            - Fn::Sub:\n                - '${MessagesTableArn}/index/*'\n                - MessagesTableArn:\n                    Fn::GetAtt: [MessagesTable, Arn]\n        - Effect: Allow\n          Action:\n            - sns:Publish\n          Resource:\n            - Ref: UserRegistrationTopic\n            - Ref: MessagePostingTopic\n        - Effect: Allow\n          Action:\n            - sqs:SendMessage\n            - sqs:ReceiveMessage\n            - sqs:DeleteMessage\n            - sqs:GetQueueAttributes\n          Resource:\n            - Fn::GetAtt: [BoardCreationQueue, Arn]\n\n  environment:\n    USERS_TABLE: ${param:userTableName}\n    MESSAGES_TABLE: ${param:messageTableName}\n    BOARDS_TABLE: ${param:boardTableName}\n    REGION: ${self:provider.region}\n    USER_REGISTRATION_TOPIC_ARN:\n      Ref: UserRegistrationTopic\n    MESSAGE_POSTING_TOPIC_ARN:\n      Ref: MessagePostingTopic\n    BOARD_CREATION_QUEUE_ARN:\n      Fn::GetAtt: [BoardCreationQueue, Arn]\n    BOARD_CREATION_QUEUE_URL:\n      Ref: BoardCreationQueue\n\nfunctions:\n  # API Gateway functions\n  registerUser:\n    handler: src/handlers/user.registerUser\n    events:\n      - httpApi:\n          path: /users/register\n          method: post\n\n  getUserByEmail:\n    handler: src/handlers/user.getUserByEmail\n    events:\n      - httpApi:\n          path: /users/{email}\n          method: get\n\n  listBoards:\n    handler: src/handlers/board.listBoards\n    events:\n      - httpApi:\n          path: /boards\n          method: get\n\n  createBoard:\n    handler: src/handlers/board.createBoard\n    events:\n      - httpApi:\n          path: /boards\n          method: post\n\n  postMessage:\n    handler: src/handlers/message.postMessage\n    events:\n      - httpApi:\n          path: /boards/{boardId}/messages\n          method: post\n\n  # Event driven functions\n  # TODO: for sns, need to figure out how to reference the params\n  processUserRegistration:\n    handler: src/handlers/processors.processUserRegistration\n    events:\n      - sns:\n          arn: !Ref UserRegistrationTopic\n          topicName: 'user-registration-topic'\n\n  processBoardCreation:\n    handler: src/handlers/processors.processBoardCreation\n    events:\n      - sqs:\n          arn:\n            Fn::GetAtt:\n              - BoardCreationQueue\n              - Arn\n\n  processMessagePosting:\n    handler: src/handlers/processors.processMessagePosting\n    events:\n      - sns:\n          arn: !Ref MessagePostingTopic\n          topicName: 'message-posting-topic'\n\nresources:\n  Resources:\n    # users table\n    UsersTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${param:userTableName}\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: id\n            AttributeType: S\n          - AttributeName: email\n            AttributeType: S\n          - AttributeName: createdAt\n            AttributeType: S\n        KeySchema:\n          - AttributeName: id\n            KeyType: HASH\n          - AttributeName: createdAt\n            KeyType: RANGE\n        GlobalSecondaryIndexes:\n          - IndexName: email-index\n            KeySchema:\n              - AttributeName: email\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n\n    # boards table\n    BoardsTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${param:boardTableName}\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: id\n            AttributeType: S\n          - AttributeName: createdAt\n            AttributeType: S\n        KeySchema:\n          - AttributeName: id\n            KeyType: HASH\n          - AttributeName: createdAt\n            KeyType: RANGE\n\n    # messages table\n    MessagesTable:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: ${param:messageTableName}\n        BillingMode: PAY_PER_REQUEST\n        AttributeDefinitions:\n          - AttributeName: id\n            AttributeType: S\n          - AttributeName: boardId\n            AttributeType: S\n          - AttributeName: userId\n            AttributeType: S\n          - AttributeName: topic\n            AttributeType: S\n          - AttributeName: createdAt\n            AttributeType: S\n        KeySchema:\n          - AttributeName: id\n            KeyType: HASH\n          - AttributeName: createdAt\n            KeyType: RANGE\n        GlobalSecondaryIndexes:\n          - IndexName: boardId-index\n            KeySchema:\n              - AttributeName: boardId\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n          - IndexName: userId-index\n            KeySchema:\n              - AttributeName: userId\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n          - IndexName: topic-index\n            KeySchema:\n              - AttributeName: topic\n                KeyType: HASH\n            Projection:\n              ProjectionType: ALL\n\n    # SNS topic for user registration\n    UserRegistrationTopic:\n      Type: AWS::SNS::Topic\n      Properties:\n        TopicName: ${param:userRegistrationTopic}\n\n    # SNS topic for message posting\n    MessagePostingTopic:\n      Type: AWS::SNS::Topic\n      Properties:\n        TopicName: ${param:messagePostingTopic}\n\n    # SQS queue for board creation\n    BoardCreationQueue:\n      Type: AWS::SQS::Queue\n      Properties:\n        QueueName: ${param:boardCreationQueue}\n\nplugins:\n  - serverless-offline\n",
     "command": [
-      "dev"
+      "deploy"
     ],
     "options": {},
     "orgId": "f99d382f-a2d3-4ff1-9171-dcebd07ccb3c",
@@ -3688,62 +3564,62 @@
     "userName": "daniel2025",
     "serviceProviderAwsAccountId": "373936881955",
     "serviceProviderAwsCfStackName": "message-board-dev",
-    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-southeast-2:373936881955:stack/message-board-dev/a8149f10-6307-11f0-9ac3-0aa9f9ce3b77",
-    "serviceProviderAwsCfStackCreated": "2025-07-17T12:14:59.159Z",
-    "serviceProviderAwsCfStackUpdated": "2025-07-17T21:47:20.991Z",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-southeast-2:373936881955:stack/message-board-dev/a5bf9a80-7fae-11f0-87db-06dff33b8b47",
+    "serviceProviderAwsCfStackCreated": "2025-08-22T23:20:53.184Z",
+    "serviceProviderAwsCfStackUpdated": "2025-08-22T23:47:16.404Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ListBoardsLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-listBoards:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-listBoards:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-ListBoardsLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "ProcessMessagePostingLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processMessagePosting:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processMessagePosting:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-ProcessMessagePostingLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "RegisterUserLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-registerUser:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-registerUser:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-RegisterUserLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "CreateBoardLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-createBoard:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-createBoard:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-CreateBoardLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "GetUserByEmailLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-getUserByEmail:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-getUserByEmail:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-GetUserByEmailLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "PostMessageLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-postMessage:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-postMessage:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-PostMessageLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "ProcessBoardCreationLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processBoardCreation:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processBoardCreation:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-ProcessBoardCreationLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "ProcessUserRegistrationLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processUserRegistration:5",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:373936881955:function:message-board-dev-processUserRegistration:9",
         "Description": "Current Lambda function version",
         "ExportName": "sls-message-board-dev-ProcessUserRegistrationLambdaFunctionQualifiedArn"
       },
       {
         "OutputKey": "HttpApiId",
-        "OutputValue": "bz89bd7xv5",
+        "OutputValue": "snn2lcca61",
         "Description": "Id of the HTTP API",
         "ExportName": "sls-message-board-dev-HttpApiId"
       },
@@ -3754,7 +3630,7 @@
       },
       {
         "OutputKey": "HttpApiUrl",
-        "OutputValue": "https://bz89bd7xv5.execute-api.ap-southeast-2.amazonaws.com",
+        "OutputValue": "https://snn2lcca61.execute-api.ap-southeast-2.amazonaws.com",
         "Description": "URL of the HTTP API",
         "ExportName": "sls-message-board-dev-HttpApiUrl"
       }
@@ -3960,13 +3836,6 @@
                     {
                       "Effect": "Allow",
                       "Action": [
-                        "iot:*"
-                      ],
-                      "Resource": "*"
-                    },
-                    {
-                      "Effect": "Allow",
-                      "Action": [
                         "sqs:ReceiveMessage",
                         "sqs:DeleteMessage",
                         "sqs:GetQueueAttributes"
@@ -4005,10 +3874,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/user.registerUser",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-registerUser",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4033,10 +3902,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "registerUser"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4055,10 +3921,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/user.getUserByEmail",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-getUserByEmail",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4083,10 +3949,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "getUserByEmail"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4105,10 +3968,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/board.listBoards",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-listBoards",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4133,10 +3996,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "listBoards"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4155,10 +4015,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/board.createBoard",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-createBoard",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4183,10 +4043,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "createBoard"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4205,10 +4062,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/message.postMessage",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-postMessage",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4233,10 +4090,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "postMessage"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4255,10 +4109,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/processors.processUserRegistration",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-processUserRegistration",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4283,10 +4137,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "processUserRegistration"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4305,10 +4156,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/processors.processBoardCreation",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-processBoardCreation",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4333,10 +4184,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "processBoardCreation"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4355,10 +4203,10 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-southeast-2-d2c40d3a-3c4d",
-              "S3Key": "serverless/message-board/dev/1753870598011-2025-07-30T10:16:38.011Z/message-board.zip"
+              "S3Key": "serverless/message-board/dev/1755906835868-2025-08-22T23:53:55.868Z/message-board.zip"
             },
-            "Handler": "index.handler",
-            "Runtime": "nodejs20.x",
+            "Handler": "src/handlers/processors.processMessagePosting",
+            "Runtime": "nodejs22.x",
             "FunctionName": "message-board-dev-processMessagePosting",
             "MemorySize": 1024,
             "Timeout": 6,
@@ -4383,10 +4231,7 @@
                 "BOARD_CREATION_QUEUE_URL": {
                   "Ref": "BoardCreationQueue"
                 },
-                "SLS_IOT_ENDPOINT": "al4ecrvv6hlil-ats.iot.ap-southeast-2.amazonaws.com",
-                "SLS_SERVICE": "message-board",
-                "SLS_STAGE": "dev",
-                "SLS_FUNCTION": "processMessagePosting"
+                "NODE_OPTIONS": "--enable-source-maps"
               }
             },
             "Role": {
@@ -4400,84 +4245,84 @@
             "ProcessMessagePostingLogGroup"
           ]
         },
-        "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk": {
+        "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "RegisterUserLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4": {
+        "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "GetUserByEmailLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak": {
+        "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ListBoardsLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58": {
+        "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "CreateBoardLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY": {
+        "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "PostMessageLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo": {
+        "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ProcessUserRegistrationLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI": {
+        "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ProcessBoardCreationLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
-        "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA": {
+        "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ProcessMessagePostingLambdaFunction"
             },
-            "CodeSha256": "nOD2sEPVuLR9uUXdd91lwKwy95wO30vahHXDq9ELghA="
+            "CodeSha256": "/gJW8BCxzU5jafr4emJzGQkhO1QsmUWbzVKpWUuqJOE="
           }
         },
         "ProcessUserRegistrationSnsSubscriptionUserregistrationtopic": {
@@ -5137,7 +4982,7 @@
         "RegisterUserLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "RegisterUserLambdaVersionjOBA114aCS40Y0ESAdCBRNeW975sCKkVN3NCPj7gjMk"
+            "Ref": "RegisterUserLambdaVersion3boeGZCgtV7rfdVKSscJUtfCsDH475s6ERhIFR2LQo"
           },
           "Export": {
             "Name": "sls-message-board-dev-RegisterUserLambdaFunctionQualifiedArn"
@@ -5146,7 +4991,7 @@
         "GetUserByEmailLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "GetUserByEmailLambdaVersion5YvN3GwdkgNo7asz9fZaYcoYwJaR1Hapri99Hq4"
+            "Ref": "GetUserByEmailLambdaVersionYpNQ4iwoqZYKtN13f51c8OD93jTiC39FYowOb9Xoc"
           },
           "Export": {
             "Name": "sls-message-board-dev-GetUserByEmailLambdaFunctionQualifiedArn"
@@ -5155,7 +5000,7 @@
         "ListBoardsLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ListBoardsLambdaVersionM1i3iKLUMtLzYNntjVK2PHaRX8hMzxGJ8kohe4nQak"
+            "Ref": "ListBoardsLambdaVersionSuCyULFupeSct8NvuUM1uTttXAp3H1L6FUNKzFqkLXw"
           },
           "Export": {
             "Name": "sls-message-board-dev-ListBoardsLambdaFunctionQualifiedArn"
@@ -5164,7 +5009,7 @@
         "CreateBoardLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "CreateBoardLambdaVersionqpFzyb0X9BRiDIyFhWHtxWTaFgigzJbOIzOdrp58"
+            "Ref": "CreateBoardLambdaVersiondUSKXER4LvESwlDCWDagk3Mw6e2W9nsKZsu4wabJwt8"
           },
           "Export": {
             "Name": "sls-message-board-dev-CreateBoardLambdaFunctionQualifiedArn"
@@ -5173,7 +5018,7 @@
         "PostMessageLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "PostMessageLambdaVersion7azOqnBQES4dn3zx9UOFslZwvFtlCnZt1zQlqXATxY"
+            "Ref": "PostMessageLambdaVersioni8MC7KexTLHBaa3SD76yPpBmsmfkXUJm7GusizJAu9o"
           },
           "Export": {
             "Name": "sls-message-board-dev-PostMessageLambdaFunctionQualifiedArn"
@@ -5182,7 +5027,7 @@
         "ProcessUserRegistrationLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ProcessUserRegistrationLambdaVersionQEpjVM1qMgPGmnbmZY7tB8VNLrWUj9q9Vm233c4Syeo"
+            "Ref": "ProcessUserRegistrationLambdaVersionGti0wINCj3Xr1gUf6JFRjJZNGyOKhundhnCDvxdlA"
           },
           "Export": {
             "Name": "sls-message-board-dev-ProcessUserRegistrationLambdaFunctionQualifiedArn"
@@ -5191,7 +5036,7 @@
         "ProcessBoardCreationLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ProcessBoardCreationLambdaVersionDbYvWOkjJL7zQ2bK50iPPPTvr8HpHWcPYTXMj0pJgI"
+            "Ref": "ProcessBoardCreationLambdaVersionCNPN3nvR4upA1u3CKxT1EwDX2OryLOTy1jAvbPVhJI"
           },
           "Export": {
             "Name": "sls-message-board-dev-ProcessBoardCreationLambdaFunctionQualifiedArn"
@@ -5200,7 +5045,7 @@
         "ProcessMessagePostingLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ProcessMessagePostingLambdaVersionE3fuWEN73W9p4ymSygaLaJWDuRDjZSo9NW3AX7EA"
+            "Ref": "ProcessMessagePostingLambdaVersiondGbVC2S43WOIIYZxhzNZnbQJHinpnkLq3bVmwKhoSQ"
           },
           "Export": {
             "Name": "sls-message-board-dev-ProcessMessagePostingLambdaFunctionQualifiedArn"

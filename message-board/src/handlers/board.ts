@@ -3,33 +3,37 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { createBoardSchema } from '../schema/boardSchema';
 import { sqsClient } from '../services/aws';
 import * as boardService from '../services/boardService';
+import {
+  withErrorHandling,
+  validateRequestBody,
+  createSuccessResponse,
+  createAcceptedResponse,
+  ApiError,
+} from '../utils/apiHelpers';
 
-export const createBoard = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.info(`Received board creation request: ${event.body}`);
-  const createRequest = createBoardSchema.parse(JSON.parse(event.body ?? '{}'));
+const handleCreateBoard = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const createRequest = validateRequestBody(event.body, createBoardSchema);
 
   // send board creation event to SQS
   const queueUrl = process.env.BOARD_CREATION_QUEUE_URL;
+  if (!queueUrl) {
+    throw new ApiError(500, 'Board creation queue not configured');
+  }
+
   const command = new SendMessageCommand({
     QueueUrl: queueUrl,
     MessageBody: JSON.stringify(createRequest),
   });
+
   await sqsClient().send(command);
-  console.info(`Sent board creation request to SQS: ${queueUrl}.`);
 
-  return {
-    statusCode: 202, // Accepted, but not processed completely
-    body: JSON.stringify({ message: 'Board creation request is accepted.' }),
-  };
+  return createAcceptedResponse('Board creation request is accepted.');
 };
 
-export const listBoards = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.info(`Received list boards request: ${JSON.stringify(event)}`);
-
+const handleListBoards = async (): Promise<APIGatewayProxyResult> => {
   const boards = await boardService.listBoards();
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify(boards),
-  };
+  return createSuccessResponse(boards);
 };
+
+export const createBoard = withErrorHandling('createBoard', handleCreateBoard);
+export const listBoards = withErrorHandling('listBoards', handleListBoards);

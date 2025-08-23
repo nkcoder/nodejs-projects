@@ -9267,28 +9267,28 @@ var $ZodFunction = class {
     if (typeof func !== "function") {
       throw new Error("implement() must be called with a function");
     }
-    const impl = (...args) => {
+    const impl = ((...args) => {
       const parsedArgs = this._def.input ? parse(this._def.input, args, void 0, { callee: impl }) : args;
       if (!Array.isArray(parsedArgs)) {
         throw new Error("Invalid arguments schema: not an array or tuple schema.");
       }
       const output = func(...parsedArgs);
       return this._def.output ? parse(this._def.output, output, void 0, { callee: impl }) : output;
-    };
+    });
     return impl;
   }
   implementAsync(func) {
     if (typeof func !== "function") {
       throw new Error("implement() must be called with a function");
     }
-    const impl = async (...args) => {
+    const impl = (async (...args) => {
       const parsedArgs = this._def.input ? await parseAsync(this._def.input, args, void 0, { callee: impl }) : args;
       if (!Array.isArray(parsedArgs)) {
         throw new Error("Invalid arguments schema: not an array or tuple schema.");
       }
       const output = await func(...parsedArgs);
       return this._def.output ? parseAsync(this._def.output, output, void 0, { callee: impl }) : output;
-    };
+    });
     return impl;
   }
   input(...args) {
@@ -10197,10 +10197,10 @@ var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   };
   inst.clone = (def2, params) => clone(inst, def2, params);
   inst.brand = () => inst;
-  inst.register = (reg, meta) => {
+  inst.register = ((reg, meta) => {
     reg.add(inst, meta);
     return inst;
-  };
+  });
   inst.parse = (data, params) => parse2(inst, data, params, { callee: inst.parse });
   inst.safeParse = (data, params) => safeParse2(inst, data, params);
   inst.parseAsync = async (data, params) => parseAsync2(inst, data, params, { callee: inst.parseAsync });
@@ -11184,9 +11184,26 @@ var getUserByEmailSchema = external_exports.object({
   email: external_exports.email()
 });
 
+// src/schema/pathParamsSchema.ts
+var emailParamSchema = external_exports.object({
+  email: external_exports.email()
+});
+var boardIdParamSchema = external_exports.object({
+  boardId: external_exports.string().min(1)
+});
+function validateEmailParam(email3) {
+  try {
+    const result = emailParamSchema.parse({ email: email3 });
+    return result.email;
+  } catch {
+    throw new Error("Invalid email format");
+  }
+}
+
 // src/services/aws.ts
 var import_client_dynamodb = require("@aws-sdk/client-dynamodb");
 var import_client_sns = require("@aws-sdk/client-sns");
+var import_client_sqs = require("@aws-sdk/client-sqs");
 var import_lib_dynamodb = require("@aws-sdk/lib-dynamodb");
 var region = process.env.AWS_REGION ?? "ap-southeast-2";
 var snsClient = () => new import_client_sns.SNSClient({ region });
@@ -11216,54 +11233,162 @@ var getUserByEmail = async (email3) => {
   return userSchema.parse(result.Items[0]);
 };
 
+// src/utils/apiHelpers.ts
+var ApiError = class extends Error {
+  constructor(statusCode, message, cause) {
+    super(message);
+    this.statusCode = statusCode;
+    this.cause = cause;
+    this.name = "ApiError";
+  }
+};
+function parseRequestBody(body) {
+  if (!body || body.trim() === "") {
+    throw new ApiError(400, "Request body is required");
+  }
+  try {
+    return JSON.parse(body);
+  } catch (error40) {
+    throw new ApiError(
+      400,
+      "Invalid JSON in request body",
+      error40 instanceof Error ? error40 : new Error(String(error40))
+    );
+  }
+}
+function validateRequestBody(body, schema) {
+  try {
+    const parsed = parseRequestBody(body);
+    return schema.parse(parsed);
+  } catch (error40) {
+    if (error40 instanceof ApiError) {
+      throw error40;
+    }
+    throw new ApiError(
+      400,
+      "Request validation failed",
+      error40 instanceof Error ? error40 : new Error(String(error40))
+    );
+  }
+}
+function getPathParameter(event, paramName) {
+  const value = event.pathParameters?.[paramName];
+  if (!value || value.trim() === "") {
+    throw new ApiError(400, `${paramName} parameter is required`);
+  }
+  return decodeURIComponent(value);
+}
+function createSuccessResponse(data, statusCode = 200) {
+  const response = {
+    success: true,
+    data
+  };
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function createAcceptedResponse(message) {
+  const response = {
+    success: true,
+    data: { message }
+  };
+  return {
+    statusCode: 202,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function createErrorResponse(error40, statusCode) {
+  const code = statusCode || (error40 instanceof ApiError ? error40.statusCode : 500);
+  const response = {
+    success: false,
+    error: {
+      message: error40.message,
+      code: error40.name
+    }
+  };
+  return {
+    statusCode: code,
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(response)
+  };
+}
+function logRequest(operation, event, additionalData) {
+  console.info("API Request", {
+    operation,
+    method: event.httpMethod,
+    path: event.path,
+    pathParameters: event.pathParameters,
+    queryStringParameters: event.queryStringParameters,
+    requestId: event.requestContext.requestId,
+    ...additionalData ? { data: additionalData } : {}
+  });
+}
+function logSuccess(operation, result, requestId) {
+  console.info("API Success", {
+    operation,
+    result: typeof result === "object" ? "object" : result,
+    requestId
+  });
+}
+function logError(operation, error40, requestId) {
+  console.error("API Error", {
+    operation,
+    error: error40.message,
+    stack: error40.stack,
+    cause: error40.cause instanceof Error ? error40.cause.message : error40.cause,
+    requestId
+  });
+}
+function withErrorHandling(operation, handler) {
+  return async (event) => {
+    const requestId = event.requestContext.requestId;
+    try {
+      logRequest(operation, event);
+      const result = await handler(event);
+      logSuccess(operation, { statusCode: result.statusCode }, requestId);
+      return result;
+    } catch (error40) {
+      const apiError = error40 instanceof Error ? error40 : new Error(String(error40));
+      logError(operation, apiError, requestId);
+      return createErrorResponse(apiError);
+    }
+  };
+}
+
 // src/handlers/user.ts
-var registerUser = async (event) => {
-  console.info(`Received user registration request: ${event.body}`);
-  const registerRequest = registerUserSchema.parse(JSON.parse(event.body ?? "{}"));
+var handleRegisterUser = async (event) => {
+  const registerRequest = validateRequestBody(event.body, registerUserSchema);
   const topicArn = process.env.USER_REGISTRATION_TOPIC_ARN;
+  if (!topicArn) {
+    throw new ApiError(500, "User registration topic not configured");
+  }
   const command = new import_client_sns2.PublishCommand({
     TopicArn: topicArn,
     Message: JSON.stringify(registerRequest)
   });
   await snsClient().send(command);
-  console.info(`Sent user registration request to SNS: ${topicArn}.`);
-  return {
-    statusCode: 202,
-    // Accepted, but not processed completely
-    body: JSON.stringify({ message: "User registration request is accepted." })
-  };
+  return createAcceptedResponse("User registration request is accepted.");
 };
-var getUserByEmail2 = async (event) => {
-  console.info(`Received fetch user by email request: ${event.pathParameters?.email}`);
-  const email3 = event.pathParameters?.email;
-  if (email3 == null || email3 === "") {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: "Email parameter is required" })
-    };
-  }
-  const decodedEmail = decodeURIComponent(email3);
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(decodedEmail)) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: "Invalid email format" })
-    };
-  }
-  const user = await getUserByEmail(decodedEmail);
+var handleGetUserByEmail = async (event) => {
+  const email3 = getPathParameter(event, "email");
+  const validatedEmail = validateEmailParam(email3);
+  const user = await getUserByEmail(validatedEmail);
   if (user === null) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({
-        message: `User with email ${decodedEmail} not found`
-      })
-    };
+    throw new ApiError(404, `User with email ${validatedEmail} not found`);
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify(user)
-  };
+  return createSuccessResponse(user);
 };
+var registerUser = withErrorHandling("registerUser", handleRegisterUser);
+var getUserByEmail2 = withErrorHandling("getUserByEmail", handleGetUserByEmail);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   getUserByEmail,
