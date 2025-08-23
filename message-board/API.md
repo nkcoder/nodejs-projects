@@ -733,3 +733,426 @@ Import this collection JSON:
 5. **URL Encoding**: Remember to URL-encode special characters in path parameters, especially email addresses.
 
 This API documentation provides all the information needed to interact with the Message Board API. All examples are ready to copy and run directly in your terminal or HTTP client of choice.
+
+## WebSocket API
+
+The Message Board API provides WebSocket support for real-time message subscriptions. Users can subscribe to specific boards and receive new messages instantly.
+
+### WebSocket URL
+
+- **Local Development**: `ws://localhost:3001`
+- **Staging**: `wss://{websocket-api-id}.execute-api.ap-southeast-2.amazonaws.com/dev`
+- **Production**: `wss://{websocket-api-id}.execute-api.ap-southeast-2.amazonaws.com/prod`
+
+Replace `{websocket-api-id}` with your actual WebSocket API Gateway ID.
+
+### Connection Management
+
+#### Connect to WebSocket
+
+Establish a WebSocket connection:
+
+```javascript
+const ws = new WebSocket('ws://localhost:3001');
+
+ws.onopen = function(event) {
+  console.log('WebSocket connected:', event);
+};
+
+ws.onclose = function(event) {
+  console.log('WebSocket disconnected:', event);
+};
+
+ws.onerror = function(error) {
+  console.error('WebSocket error:', error);
+};
+
+ws.onmessage = function(event) {
+  const message = JSON.parse(event.data);
+  console.log('Received message:', message);
+};
+```
+
+#### Connection Events
+
+When you connect, the server will store your connection and respond with:
+
+```json
+{
+  "status": "connected",
+  "connectionId": "connection-id-123"
+}
+```
+
+### Message Subscription
+
+#### Subscribe to a Board
+
+Send a subscription message to start receiving messages for a specific board:
+
+```javascript
+const subscribeMessage = {
+  action: "subscribe",
+  boardId: "board-123",
+  userId: "user-456"  // optional
+};
+
+ws.send(JSON.stringify(subscribeMessage));
+```
+
+**Message Format**:
+
+```json
+{
+  "action": "subscribe",
+  "boardId": "string (required)",
+  "userId": "string (optional)"
+}
+```
+
+**Response**:
+
+```json
+{
+  "type": "subscription_confirmed",
+  "boardId": "board-123",
+  "connectionId": "connection-id-123"
+}
+```
+
+#### Unsubscribe from a Board
+
+Stop receiving messages for a board:
+
+```javascript
+const unsubscribeMessage = {
+  action: "unsubscribe",
+  boardId: "board-123"
+};
+
+ws.send(JSON.stringify(unsubscribeMessage));
+```
+
+**Message Format**:
+
+```json
+{
+  "action": "unsubscribe",
+  "boardId": "string (required)"
+}
+```
+
+**Response**:
+
+```json
+{
+  "type": "unsubscription_confirmed",
+  "boardId": "board-123",
+  "connectionId": "connection-id-123"
+}
+```
+
+### Real-time Message Broadcasting
+
+When a new message is posted to a board you're subscribed to, you'll receive:
+
+```json
+{
+  "type": "message",
+  "boardId": "board-123",
+  "message": {
+    "id": "msg-789",
+    "topic": "New Topic",
+    "data": "Message content here",
+    "boardId": "board-123",
+    "userId": "user-456",
+    "createdAt": "2023-12-01T15:30:00.000Z"
+  }
+}
+```
+
+### Complete WebSocket Example
+
+Here's a complete example of using WebSocket for real-time messaging:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Message Board WebSocket Example</title>
+</head>
+<body>
+  <div id="messages"></div>
+  <input type="text" id="boardId" placeholder="Board ID" value="board-123">
+  <button onclick="subscribe()">Subscribe</button>
+  <button onclick="unsubscribe()">Unsubscribe</button>
+
+  <script>
+    let ws;
+    let currentBoardId;
+
+    function connect() {
+      ws = new WebSocket('ws://localhost:3001');
+      
+      ws.onopen = function(event) {
+        console.log('WebSocket connected');
+        addMessage('Connected to WebSocket');
+      };
+
+      ws.onclose = function(event) {
+        console.log('WebSocket disconnected');
+        addMessage('Disconnected from WebSocket');
+      };
+
+      ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+        addMessage('WebSocket error: ' + error);
+      };
+
+      ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log('Received:', data);
+        
+        switch(data.type) {
+          case 'subscription_confirmed':
+            addMessage(`Subscribed to board: ${data.boardId}`);
+            break;
+          case 'unsubscription_confirmed':
+            addMessage(`Unsubscribed from board: ${data.boardId}`);
+            break;
+          case 'message':
+            addMessage(`New message in ${data.boardId}: ${data.message.topic} - ${data.message.data}`);
+            break;
+          default:
+            addMessage(`Unknown message type: ${JSON.stringify(data)}`);
+        }
+      };
+    }
+
+    function subscribe() {
+      const boardId = document.getElementById('boardId').value;
+      if (!boardId) {
+        alert('Please enter a board ID');
+        return;
+      }
+
+      currentBoardId = boardId;
+      const message = {
+        action: 'subscribe',
+        boardId: boardId,
+        userId: 'user-123'  // Replace with actual user ID
+      };
+
+      ws.send(JSON.stringify(message));
+    }
+
+    function unsubscribe() {
+      if (!currentBoardId) {
+        alert('Not subscribed to any board');
+        return;
+      }
+
+      const message = {
+        action: 'unsubscribe',
+        boardId: currentBoardId
+      };
+
+      ws.send(JSON.stringify(message));
+      currentBoardId = null;
+    }
+
+    function addMessage(text) {
+      const messagesDiv = document.getElementById('messages');
+      const messageElement = document.createElement('div');
+      messageElement.textContent = `${new Date().toLocaleTimeString()}: ${text}`;
+      messagesDiv.appendChild(messageElement);
+    }
+
+    // Connect automatically when page loads
+    connect();
+  </script>
+</body>
+</html>
+```
+
+### Node.js WebSocket Client Example
+
+```javascript
+const WebSocket = require('ws');
+
+class MessageBoardClient {
+  constructor(url) {
+    this.ws = new WebSocket(url);
+    this.currentSubscriptions = new Set();
+    this.setupEventHandlers();
+  }
+
+  setupEventHandlers() {
+    this.ws.on('open', () => {
+      console.log('Connected to message board WebSocket');
+    });
+
+    this.ws.on('close', () => {
+      console.log('Disconnected from message board WebSocket');
+    });
+
+    this.ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+
+    this.ws.on('message', (data) => {
+      const message = JSON.parse(data.toString());
+      this.handleMessage(message);
+    });
+  }
+
+  handleMessage(message) {
+    switch(message.type) {
+      case 'subscription_confirmed':
+        console.log(`✅ Subscribed to board: ${message.boardId}`);
+        this.currentSubscriptions.add(message.boardId);
+        break;
+
+      case 'unsubscription_confirmed':
+        console.log(`❌ Unsubscribed from board: ${message.boardId}`);
+        this.currentSubscriptions.delete(message.boardId);
+        break;
+
+      case 'message':
+        console.log(`📨 New message in ${message.boardId}:`);
+        console.log(`   Topic: ${message.message.topic}`);
+        console.log(`   Content: ${message.message.data}`);
+        console.log(`   By: ${message.message.userId}`);
+        console.log(`   At: ${message.message.createdAt}`);
+        break;
+
+      default:
+        console.log('Unknown message:', message);
+    }
+  }
+
+  subscribe(boardId, userId) {
+    const message = {
+      action: 'subscribe',
+      boardId,
+      userId
+    };
+    this.ws.send(JSON.stringify(message));
+  }
+
+  unsubscribe(boardId) {
+    const message = {
+      action: 'unsubscribe',
+      boardId
+    };
+    this.ws.send(JSON.stringify(message));
+  }
+
+  close() {
+    this.ws.close();
+  }
+}
+
+// Usage
+const client = new MessageBoardClient('ws://localhost:3001');
+
+// Subscribe to a board after connection is established
+setTimeout(() => {
+  client.subscribe('board-123', 'user-456');
+}, 1000);
+
+// Unsubscribe after 10 seconds
+setTimeout(() => {
+  client.unsubscribe('board-123');
+}, 10000);
+
+// Close connection after 15 seconds
+setTimeout(() => {
+  client.close();
+}, 15000);
+```
+
+### WebSocket Error Handling
+
+#### Common Errors
+
+**400 Bad Request** - Invalid message format:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Invalid message format: action is required",
+    "statusCode": 400
+  }
+}
+```
+
+**400 Bad Request** - Missing connection ID:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Connection ID not found",
+    "statusCode": 400
+  }
+}
+```
+
+**500 Internal Server Error** - Server error:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Internal server error",
+    "statusCode": 500
+  }
+}
+```
+
+### Testing WebSocket with curl
+
+You can test the WebSocket connection using curl with the `--http1.1` flag:
+
+```bash
+# Note: This only tests the initial HTTP upgrade request
+# For full WebSocket testing, use a proper WebSocket client
+curl -i -N -H "Connection: Upgrade" \
+     -H "Upgrade: websocket" \
+     -H "Sec-WebSocket-Version: 13" \
+     -H "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==" \
+     --http1.1 \
+     "ws://localhost:3001/"
+```
+
+### Integration with REST API
+
+The WebSocket API works seamlessly with the REST API:
+
+1. **Use REST API** to post messages to boards
+2. **Use WebSocket** to receive real-time notifications when messages are posted
+3. **Use REST API** to retrieve historical messages
+4. **Use WebSocket** for live updates and notifications
+
+This combination provides both reliability (REST API) and real-time capabilities (WebSocket).
+
+### Connection Lifecycle
+
+1. **Connect**: Client establishes WebSocket connection
+2. **Store Connection**: Server stores connection in DynamoDB
+3. **Subscribe**: Client sends subscribe message for specific boards
+4. **Update Subscription**: Server updates connection with board subscription
+5. **Broadcast**: When messages are posted via REST API, they're automatically broadcast to subscribed WebSocket clients
+6. **Disconnect**: Connection is automatically cleaned up when client disconnects
+
+### Deployment Notes
+
+- **Local Development**: Use `ws://` protocol
+- **Production**: Use `wss://` (secure WebSocket) protocol
+- **API Gateway**: WebSocket API is separate from REST API Gateway
+- **Lambda Functions**: Separate Lambda functions handle WebSocket events
+- **DynamoDB**: Connection state is stored in a dedicated WebSocket connections table
+
+The WebSocket API provides a powerful way to build real-time messaging applications on top of the Message Board API.

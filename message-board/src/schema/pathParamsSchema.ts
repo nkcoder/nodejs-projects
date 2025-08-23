@@ -6,7 +6,12 @@ export const emailParamSchema = z.object({
 export type EmailParamSchema = z.infer<typeof emailParamSchema>;
 
 export const boardIdParamSchema = z.object({
-  boardId: z.string().min(1),
+  boardId: z
+    .string()
+    .min(1)
+    .refine(s => s.trim().length > 0, {
+      message: 'Board ID cannot be empty or whitespace only',
+    }),
 });
 export type BoardIdParamSchema = z.infer<typeof boardIdParamSchema>;
 
@@ -33,4 +38,3 @@ export function validateBoardIdParam(boardId: string): string {
     throw new Error('Invalid board ID format');
   }
 }
-

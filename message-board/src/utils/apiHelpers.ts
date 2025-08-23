@@ -35,11 +35,7 @@ export function parseRequestBody(body: string | null): unknown {
   try {
     return JSON.parse(body);
   } catch (error) {
-    throw new ApiError(
-      400,
-      'Invalid JSON in request body',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    throw new ApiError(400, 'Invalid JSON in request body', error instanceof Error ? error : new Error(String(error)));
   }
 }
 
@@ -54,11 +50,7 @@ export function validateRequestBody<T>(body: string | null, schema: z.ZodSchema<
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(
-      400,
-      'Request validation failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    throw new ApiError(400, 'Request validation failed', error instanceof Error ? error : new Error(String(error)));
   }
 }
 
@@ -114,7 +106,7 @@ export function createAcceptedResponse(message: string): APIGatewayProxyResult {
  */
 export function createErrorResponse(error: Error, statusCode?: number): APIGatewayProxyResult {
   const code = statusCode || (error instanceof ApiError ? error.statusCode : 500);
-  
+
   const response: ApiResponse = {
     success: false,
     error: {
@@ -180,7 +172,7 @@ export function withErrorHandling(
 ) {
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const requestId = event.requestContext.requestId;
-    
+
     try {
       logRequest(operation, event);
       const result = await handler(event);

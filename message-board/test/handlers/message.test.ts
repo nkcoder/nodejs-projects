@@ -65,7 +65,9 @@ describe('message handler', () => {
       const result = await postMessage(event);
 
       expect(result.statusCode).toBe(202);
-      expect(JSON.parse(result.body)).toEqual({
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(true);
+      expect(responseBody.data).toMatchObject({
         message: 'Message posting request is accepted.',
       });
 
@@ -92,9 +94,9 @@ describe('message handler', () => {
       const result = await postMessage(event);
 
       expect(result.statusCode).toBe(400);
-      expect(JSON.parse(result.body)).toEqual({
-        message: 'Board ID parameter is required',
-      });
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(false);
+      expect(responseBody.error.message).toContain('boardId parameter is required');
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -110,9 +112,9 @@ describe('message handler', () => {
       const result = await postMessage(event);
 
       expect(result.statusCode).toBe(400);
-      expect(JSON.parse(result.body)).toEqual({
-        message: 'Board ID parameter is required',
-      });
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(false);
+      expect(responseBody.error.message).toContain('boardId parameter is required');
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -124,8 +126,9 @@ describe('message handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -137,8 +140,9 @@ describe('message handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -150,8 +154,9 @@ describe('message handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -163,8 +168,9 @@ describe('message handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -175,8 +181,9 @@ describe('message handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -184,14 +191,17 @@ describe('message handler', () => {
       const event = createEvent(null);
       event.body = null;
 
-      await expect(postMessage(event)).rejects.toThrow();
+      const result = await postMessage(event);
+
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should handle empty body', async () => {
       const event = createEvent({});
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -199,7 +209,9 @@ describe('message handler', () => {
       const event = createEvent({});
       event.body = 'invalid json';
 
-      await expect(postMessage(event)).rejects.toThrow();
+      const result = await postMessage(event);
+
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -213,8 +225,9 @@ describe('message handler', () => {
       mockSend.mockRejectedValueOnce(new Error('SNS error'));
 
       const event = createEvent(requestBody);
+      const result = await postMessage(event);
 
-      await expect(postMessage(event)).rejects.toThrow('SNS error');
+      expect(result.statusCode).toBe(500);
       expect(mockSend).toHaveBeenCalledTimes(1);
     });
 
@@ -226,24 +239,18 @@ describe('message handler', () => {
         data: 'This is a test message',
         userId: 'user123',
       };
-      const boardId = 'board-456';
 
-      mockSend.mockResolvedValueOnce({ MessageId: '123' });
-
-      const event = createEvent(requestBody, boardId);
+      const event = createEvent(requestBody);
       const result = await postMessage(event);
 
-      // Should still work but with undefined topic ARN
-      expect(result.statusCode).toBe(202);
-
-      const publishCommand = mockSend.mock.calls[0][0] as PublishCommand;
-      expect(publishCommand.input.TopicArn).toBeUndefined();
+      expect(result.statusCode).toBe(500);
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should handle special characters in topic and data', async () => {
       const requestBody = {
-        topic: 'Test Topic - Special #1!',
-        data: 'This is a test message with "quotes" and special chars: @#$%',
+        topic: "Test Topic - @#$%^&*()'",
+        data: "This is a test message with special chars: @#$%^&*()'",
         userId: 'user123',
       };
 
@@ -259,7 +266,7 @@ describe('message handler', () => {
     it('should handle long valid data', async () => {
       const requestBody = {
         topic: 'Test Topic',
-        data: 'A'.repeat(4999), // Max allowed is 5000
+        data: 'A'.repeat(5000), // Max length
         userId: 'user123',
       };
 

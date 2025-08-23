@@ -34,7 +34,12 @@ const handleRegisterUser = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
 const handleGetUserByEmail = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const email = getPathParameter(event, 'email');
-  const validatedEmail = validateEmailParam(email);
+  let validatedEmail: string;
+  try {
+    validatedEmail = validateEmailParam(email);
+  } catch (error) {
+    throw new ApiError(400, error instanceof Error ? error.message : 'Invalid email format');
+  }
 
   const user = await userService.getUserByEmail(validatedEmail);
   if (user === null) {

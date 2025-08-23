@@ -6,7 +6,6 @@ import { snsClient } from '../services/aws';
 import * as messageService from '../services/messageService';
 import {
   withErrorHandling,
-  validateRequestBody,
   parseRequestBody,
   getPathParameter,
   createSuccessResponse,
@@ -16,14 +15,27 @@ import {
 
 const handlePostMessage = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const boardId = getPathParameter(event, 'boardId');
-  const validatedBoardId = validateBoardIdParam(boardId);
+  let validatedBoardId: string;
+  try {
+    validatedBoardId = validateBoardIdParam(boardId);
+  } catch (error) {
+    throw new ApiError(400, error instanceof Error ? error.message : 'Invalid board ID');
+  }
 
   // Parse and validate the request body, then add boardId
   const requestBody = parseRequestBody(event.body);
-  const postRequest = postMessageSchema.parse({
+
+  // Validate the request with boardId added
+  const validationResult = postMessageSchema.safeParse({
     ...(requestBody as Record<string, unknown>),
     boardId: validatedBoardId,
   });
+
+  if (!validationResult.success) {
+    throw new ApiError(400, 'Request validation failed', validationResult.error);
+  }
+
+  const postRequest = validationResult.data;
 
   // send message posting event to SNS
   const topicArn = process.env.MESSAGE_POSTING_TOPIC_ARN;

@@ -8,3 +8,4 @@ references/*/
 
 .build/
 **/.serverless
+message-board/.build

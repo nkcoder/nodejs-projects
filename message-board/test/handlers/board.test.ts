@@ -67,7 +67,9 @@ describe('board handler', () => {
       const result = await createBoard(event);
 
       expect(result.statusCode).toBe(202);
-      expect(JSON.parse(result.body)).toEqual({
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(true);
+      expect(responseBody.data).toMatchObject({
         message: 'Board creation request is accepted.',
       });
 
@@ -88,8 +90,9 @@ describe('board handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -100,8 +103,9 @@ describe('board handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -111,8 +115,9 @@ describe('board handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -122,8 +127,9 @@ describe('board handler', () => {
       };
 
       const event = createEvent(requestBody);
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -131,14 +137,17 @@ describe('board handler', () => {
       const event = createEvent(null);
       event.body = null;
 
-      await expect(createBoard(event)).rejects.toThrow();
+      const result = await createBoard(event);
+
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should handle empty body', async () => {
       const event = createEvent({});
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow();
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -146,7 +155,9 @@ describe('board handler', () => {
       const event = createEvent({});
       event.body = 'invalid json';
 
-      await expect(createBoard(event)).rejects.toThrow();
+      const result = await createBoard(event);
+
+      expect(result.statusCode).toBe(400);
       expect(mockSend).not.toHaveBeenCalled();
     });
 
@@ -159,8 +170,9 @@ describe('board handler', () => {
       mockSend.mockRejectedValueOnce(new Error('SQS error'));
 
       const event = createEvent(requestBody);
+      const result = await createBoard(event);
 
-      await expect(createBoard(event)).rejects.toThrow('SQS error');
+      expect(result.statusCode).toBe(500);
       expect(mockSend).toHaveBeenCalledTimes(1);
     });
 
@@ -172,16 +184,12 @@ describe('board handler', () => {
         createdBy: 'user123',
       };
 
-      mockSend.mockResolvedValueOnce({ MessageId: '123' });
-
       const event = createEvent(requestBody);
       const result = await createBoard(event);
 
-      // Should still work but with undefined queue URL
-      expect(result.statusCode).toBe(202);
-
-      const sendMessageCommand = mockSend.mock.calls[0][0] as SendMessageCommand;
-      expect(sendMessageCommand.input.QueueUrl).toBeUndefined();
+      // Should return 500 error when queue URL is not configured
+      expect(result.statusCode).toBe(500);
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should handle special characters in board name', async () => {
@@ -223,7 +231,9 @@ describe('board handler', () => {
       const result = await listBoards(event);
 
       expect(result.statusCode).toBe(200);
-      expect(JSON.parse(result.body)).toEqual(boards);
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(true);
+      expect(responseBody.data).toEqual(boards);
     });
 
     it('should return empty array when no boards exist', async () => {
@@ -233,15 +243,20 @@ describe('board handler', () => {
       const result = await listBoards(event);
 
       expect(result.statusCode).toBe(200);
-      expect(JSON.parse(result.body)).toEqual([]);
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(true);
+      expect(responseBody.data).toEqual([]);
     });
 
     it('should handle service error', async () => {
       vi.mocked(boardService.listBoards).mockRejectedValueOnce(new Error('Database error'));
 
       const event = createEvent({});
+      const result = await listBoards(event);
 
-      await expect(listBoards(event)).rejects.toThrow('Database error');
+      expect(result.statusCode).toBe(500);
+      const responseBody = JSON.parse(result.body);
+      expect(responseBody.success).toBe(false);
     });
   });
 });

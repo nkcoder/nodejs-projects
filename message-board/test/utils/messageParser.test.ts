@@ -26,7 +26,7 @@ describe('messageParser', () => {
           SignatureVersion: '1',
           Signature: 'test-signature',
           SigningCertUrl: 'test-cert-url',
-        UnsubscribeUrl: 'test-unsubscribe-url',
+          UnsubscribeUrl: 'test-unsubscribe-url',
           MessageAttributes: {},
         },
       };
@@ -51,7 +51,7 @@ describe('messageParser', () => {
           SignatureVersion: '1',
           Signature: 'test-signature',
           SigningCertUrl: 'test-cert-url',
-        UnsubscribeUrl: 'test-unsubscribe-url',
+          UnsubscribeUrl: 'test-unsubscribe-url',
           MessageAttributes: {},
         },
       };
@@ -75,7 +75,7 @@ describe('messageParser', () => {
           SignatureVersion: '1',
           Signature: 'test-signature',
           SigningCertUrl: 'test-cert-url',
-        UnsubscribeUrl: 'test-unsubscribe-url',
+          UnsubscribeUrl: 'test-unsubscribe-url',
           MessageAttributes: {},
         },
       };

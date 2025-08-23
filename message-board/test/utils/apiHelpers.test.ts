@@ -17,7 +17,7 @@ describe('apiHelpers', () => {
   describe('ApiError', () => {
     it('should create ApiError with status code and message', () => {
       const error = new ApiError(400, 'Test error');
-      
+
       expect(error.name).toBe('ApiError');
       expect(error.message).toBe('Test error');
       expect(error.statusCode).toBe(400);
@@ -27,7 +27,7 @@ describe('apiHelpers', () => {
     it('should create ApiError with cause', () => {
       const cause = new Error('Original error');
       const error = new ApiError(500, 'Wrapper error', cause);
-      
+
       expect(error.name).toBe('ApiError');
       expect(error.message).toBe('Wrapper error');
       expect(error.statusCode).toBe(500);
@@ -39,7 +39,7 @@ describe('apiHelpers', () => {
     it('should parse valid JSON body', () => {
       const body = '{"name": "test", "value": 42}';
       const result = parseRequestBody(body);
-      
+
       expect(result).toEqual({ name: 'test', value: 42 });
     });
 
@@ -68,13 +68,13 @@ describe('apiHelpers', () => {
     it('should validate and return parsed data', () => {
       const body = '{"name": "test", "value": 42}';
       const result = validateRequestBody(body, testSchema);
-      
+
       expect(result).toEqual({ name: 'test', value: 42 });
     });
 
     it('should throw ApiError for validation failure', () => {
       const body = '{"name": "test", "value": "not-a-number"}';
-      
+
       expect(() => validateRequestBody(body, testSchema)).toThrow(ApiError);
       expect(() => validateRequestBody(body, testSchema)).toThrow('Request validation failed');
     });
@@ -103,20 +103,20 @@ describe('apiHelpers', () => {
     it('should extract and decode path parameter', () => {
       const event = createEvent({ email: 'test%40example.com' });
       const result = getPathParameter(event, 'email');
-      
+
       expect(result).toBe('test@example.com');
     });
 
     it('should throw ApiError for missing parameter', () => {
       const event = createEvent(null);
-      
+
       expect(() => getPathParameter(event, 'email')).toThrow(ApiError);
       expect(() => getPathParameter(event, 'email')).toThrow('email parameter is required');
     });
 
     it('should throw ApiError for empty parameter', () => {
       const event = createEvent({ email: '' });
-      
+
       expect(() => getPathParameter(event, 'email')).toThrow(ApiError);
     });
   });
@@ -125,10 +125,10 @@ describe('apiHelpers', () => {
     it('should create success response with data', () => {
       const data = { name: 'test', value: 42 };
       const response = createSuccessResponse(data);
-      
+
       expect(response.statusCode).toBe(200);
       expect(response.headers?.['Content-Type']).toBe('application/json');
-      
+
       const body = JSON.parse(response.body);
       expect(body).toEqual({
         success: true,
@@ -139,7 +139,7 @@ describe('apiHelpers', () => {
     it('should create success response with custom status code', () => {
       const data = { id: '123' };
       const response = createSuccessResponse(data, 201);
-      
+
       expect(response.statusCode).toBe(201);
     });
   });
@@ -148,10 +148,10 @@ describe('apiHelpers', () => {
     it('should create accepted response', () => {
       const message = 'Request accepted';
       const response = createAcceptedResponse(message);
-      
+
       expect(response.statusCode).toBe(202);
       expect(response.headers?.['Content-Type']).toBe('application/json');
-      
+
       const body = JSON.parse(response.body);
       expect(body).toEqual({
         success: true,
@@ -164,10 +164,10 @@ describe('apiHelpers', () => {
     it('should create error response from ApiError', () => {
       const error = new ApiError(400, 'Validation failed');
       const response = createErrorResponse(error);
-      
+
       expect(response.statusCode).toBe(400);
       expect(response.headers?.['Content-Type']).toBe('application/json');
-      
+
       const body = JSON.parse(response.body);
       expect(body).toEqual({
         success: false,
@@ -181,9 +181,9 @@ describe('apiHelpers', () => {
     it('should create error response from generic Error', () => {
       const error = new Error('Something went wrong');
       const response = createErrorResponse(error);
-      
+
       expect(response.statusCode).toBe(500);
-      
+
       const body = JSON.parse(response.body);
       expect(body.success).toBe(false);
       expect(body.error.message).toBe('Something went wrong');
@@ -193,7 +193,7 @@ describe('apiHelpers', () => {
     it('should use custom status code', () => {
       const error = new Error('Not found');
       const response = createErrorResponse(error, 404);
-      
+
       expect(response.statusCode).toBe(404);
     });
   });
@@ -210,20 +210,20 @@ describe('apiHelpers', () => {
       event.requestContext = { requestId: 'test-123' } as any;
 
       const result = await wrappedHandler(event);
-      
+
       expect(result.statusCode).toBe(200);
       expect(mockHandler).toHaveBeenCalledWith(event);
     });
 
     it('should catch and handle ApiError', async () => {
       const mockHandler = vi.fn().mockRejectedValue(new ApiError(400, 'Bad request'));
-      
+
       const wrappedHandler = withErrorHandling('testOperation', mockHandler);
       const event = {} as APIGatewayProxyEvent;
       event.requestContext = { requestId: 'test-123' } as any;
 
       const result = await wrappedHandler(event);
-      
+
       expect(result.statusCode).toBe(400);
       const body = JSON.parse(result.body);
       expect(body.success).toBe(false);
@@ -232,13 +232,13 @@ describe('apiHelpers', () => {
 
     it('should catch and handle generic Error', async () => {
       const mockHandler = vi.fn().mockRejectedValue(new Error('Unexpected error'));
-      
+
       const wrappedHandler = withErrorHandling('testOperation', mockHandler);
       const event = {} as APIGatewayProxyEvent;
       event.requestContext = { requestId: 'test-123' } as any;
 
       const result = await wrappedHandler(event);
-      
+
       expect(result.statusCode).toBe(500);
       const body = JSON.parse(result.body);
       expect(body.success).toBe(false);
