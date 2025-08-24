@@ -4,7 +4,185 @@ A simple async API where users can register, create boards, post messages to boa
 
 ## System Design
 
-![System Design](./doc/diagram.png)
+The Message Board is built using a **serverless, event-driven architecture** on AWS, providing scalability, reliability, and cost-effectiveness. The system supports both traditional REST API operations and real-time messaging through WebSockets.
+
+### Architecture Overview
+
+The system follows a **microservices pattern** with clear separation of concerns:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 │
+│     Client      │    │   API Gateway   │    │   Lambda        │
+│   Applications  │◄──►│   (REST + WS)   │◄──►│   Functions     │
+│                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        │
+                                │                        ▼
+                                │               ┌─────────────────┐
+                                │               │   Event Bus     │
+                                │               │   (SNS + SQS)   │
+                                │               └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │   DynamoDB      │    │   Processor     │
+                       │   Tables        │◄───│   Functions     │
+                       └─────────────────┘    └─────────────────┘
+```
+
+### Core Components
+
+#### 1. **API Gateway**
+- **REST API**: Handles HTTP requests for user registration, board operations, and message posting
+- **WebSocket API**: Manages real-time connections for live message subscriptions
+- **Features**: Rate limiting, CORS, request validation, automatic scaling
+
+#### 2. **Lambda Functions**
+The system is divided into distinct Lambda functions for different responsibilities:
+
+**API Handlers** (Synchronous):
+- `registerUser`: Accepts user registration requests
+- `getUserByEmail`: Retrieves user information
+- `listBoards`: Returns all available boards
+- `createBoard`: Accepts board creation requests
+- `postMessage`: Accepts message posting requests
+
+**WebSocket Handlers** (Real-time):
+- `websocketConnect`: Manages WebSocket connection establishment
+- `websocketDisconnect`: Handles connection cleanup
+- `websocketSubscribe`: Processes subscription/unsubscription requests
+
+**Event Processors** (Asynchronous):
+- `processUserRegistration`: Creates users in database
+- `processBoardCreation`: Creates boards in database
+- `processMessagePosting`: Creates messages and broadcasts to subscribers
+
+#### 3. **Event-Driven Architecture**
+The system uses AWS managed services for reliable event processing:
+
+**SNS Topics**:
+- `UserRegistrationTopic`: User creation events
+- `MessagePostingTopic`: New message events
+
+**SQS Queues**:
+- `BoardCreationQueue`: Board creation events (with retry capabilities)
+
+#### 4. **Data Storage**
+**DynamoDB Tables** with optimized schemas:
+
+**Users Table**:
+```
+Primary Key: id + createdAt
+Global Secondary Index: email-index
+Attributes: id, name, email, createdAt
+```
+
+**Boards Table**:
+```
+Primary Key: id + createdAt  
+Attributes: id, name, createdBy, createdAt
+```
+
+**Messages Table**:
+```
+Primary Key: id + createdAt
+Global Secondary Indexes:
+  - boardId-index (for board message queries)
+  - userId-index (for user message queries)
+  - topic-index (for topic-based queries)
+Attributes: id, topic, data, boardId, userId, createdAt
+```
+
+**WebSocket Connections Table**:
+```
+Primary Key: connectionId
+Global Secondary Index: boardId-index (for broadcasting)
+Attributes: connectionId, boardId, userId, connectedAt
+```
+
+### Design Principles
+
+#### 1. **Asynchronous Processing**
+- **API Responsiveness**: API endpoints return immediately (202 Accepted) while processing happens asynchronously
+- **Decoupled Components**: Producers and consumers are independent
+- **Fault Tolerance**: Failed events can be retried without affecting other operations
+
+#### 2. **Event-Driven Communication**
+- **Loose Coupling**: Components communicate through events, not direct calls
+- **Scalability**: Each component can scale independently based on load
+- **Reliability**: AWS managed services provide built-in retry and dead letter queue capabilities
+
+#### 3. **Serverless Benefits**
+- **Auto Scaling**: Functions scale automatically with demand
+- **Cost Efficiency**: Pay only for actual usage
+- **High Availability**: AWS manages infrastructure availability
+- **No Server Management**: Focus on business logic, not infrastructure
+
+#### 4. **Real-time Capabilities**
+- **WebSocket Connections**: Persistent connections for instant message delivery
+- **Selective Broadcasting**: Messages sent only to relevant subscribers
+- **Connection Management**: Automatic cleanup of stale connections
+
+### Data Flow Examples
+
+#### User Registration Flow
+```
+1. POST /users/register → API Gateway
+2. registerUser Lambda → Validates input
+3. SNS Topic → Publishes user creation event  
+4. processUserRegistration Lambda → Creates user in DynamoDB
+5. Response: "202 Accepted" (immediate)
+```
+
+#### Real-time Message Flow
+```
+1. POST /boards/{id}/messages → API Gateway
+2. postMessage Lambda → Validates input
+3. SNS Topic → Publishes message event
+4. processMessagePosting Lambda → 
+   a. Creates message in DynamoDB
+   b. Queries WebSocket connections for board subscribers
+   c. Broadcasts message to all subscribers via WebSocket API
+5. Response: "202 Accepted" + Real-time delivery to subscribers
+```
+
+### Scalability Characteristics
+
+#### **Horizontal Scaling**
+- **Lambda Concurrency**: Up to 1000 concurrent executions per region (configurable)
+- **API Gateway**: Handles millions of requests per second
+- **DynamoDB**: Auto-scales read/write capacity based on demand
+- **WebSocket Connections**: Up to 100,000 concurrent connections per region
+
+#### **Performance Optimization**
+- **Database Indexes**: Optimized queries with GSIs
+- **Event Batching**: Process multiple events in single Lambda invocation
+- **Connection Pooling**: Reuse database connections across Lambda invocations
+- **Memory Allocation**: Right-sized Lambda memory for optimal performance/cost
+
+#### **Cost Optimization**
+- **Pay-per-use**: No idle resource costs
+- **DynamoDB On-Demand**: Automatic scaling without over-provisioning
+- **Lambda Provisioned Concurrency**: Only when needed for consistent performance
+- **CloudWatch Monitoring**: Track and optimize costs continuously
+
+### Security Model
+
+#### **Network Security**
+- **HTTPS/WSS**: All communication encrypted in transit
+- **VPC**: Lambda functions can be deployed in private VPC if needed
+- **API Gateway**: Built-in DDoS protection
+
+#### **Data Protection**
+- **DynamoDB Encryption**: Data encrypted at rest
+- **IAM Roles**: Least privilege access for all components
+- **Input Validation**: All inputs validated using Zod schemas
+
+#### **Future Security Enhancements**
+- **Authentication**: JWT-based user authentication
+- **Authorization**: Role-based access control
+- **Rate Limiting**: Per-user request throttling
 
 ## Subscription System Design
 
@@ -86,7 +264,7 @@ The WebSocket connections are managed in a dedicated DynamoDB table:
 
 ### Workflow
 
-#### 1. Connection Establishment
+#### 1. Connection Establishment (Infrastructure Level)
 
 ```mermaid
 sequenceDiagram
@@ -96,7 +274,7 @@ sequenceDiagram
     participant DynamoDB
 
     Client->>API Gateway: WebSocket Connect
-    API Gateway->>Connect Lambda: $connect event
+    API Gateway->>Connect Lambda: $connect event (AWS automatic)
     Connect Lambda->>DynamoDB: Store connection
     Connect Lambda->>API Gateway: Success response
     API Gateway->>Client: Connection established
@@ -104,9 +282,15 @@ sequenceDiagram
 
 **Process**:
 1. Client initiates WebSocket connection to API Gateway
-2. API Gateway triggers `websocketConnect` Lambda function
+2. **AWS automatically** triggers `websocketConnect` Lambda function via `$connect` route
 3. Lambda stores connection ID in DynamoDB (without board subscription initially)
 4. Connection is established and ready for subscription requests
+
+**Why This Step Exists**:
+- `$connect` is a **required AWS API Gateway WebSocket route** - not optional
+- Provides **infrastructure-level connection tracking** for monitoring and cleanup
+- Enables **multi-subscription support** (one connection, many board subscriptions)
+- **Automatic cleanup** when network connections drop unexpectedly
 
 #### 2. Board Subscription
 
@@ -184,7 +368,7 @@ sequenceDiagram
 }
 ```
 
-#### 4. Connection Cleanup
+#### 4. Connection Cleanup (Infrastructure Level)
 
 ```mermaid
 sequenceDiagram
@@ -194,15 +378,21 @@ sequenceDiagram
     participant DynamoDB
 
     Client->>API Gateway: WebSocket Disconnect
-    API Gateway->>Disconnect Lambda: $disconnect event
+    API Gateway->>Disconnect Lambda: $disconnect event (AWS automatic)
     Disconnect Lambda->>DynamoDB: Remove connection
 ```
 
 **Process**:
 1. Client disconnects (intentionally or due to network issues)
-2. API Gateway triggers `websocketDisconnect` Lambda function
+2. **AWS automatically** triggers `websocketDisconnect` Lambda function via `$disconnect` route
 3. Lambda removes connection record from DynamoDB
-4. Stale connections are automatically cleaned up when broadcast attempts fail
+4. All board subscriptions for this connection are automatically cleaned up
+
+**Why This Step Exists**:
+- `$disconnect` is a **required AWS API Gateway WebSocket route** - not optional
+- Provides **immediate cleanup** when connections close (vs. waiting for broadcast failures)
+- **Prevents database bloat** from stale connection records
+- **Accurate connection metrics** for monitoring and capacity planning
 
 ### Error Handling and Resilience
 
@@ -304,6 +494,39 @@ wscat -c ws://localhost:3001
 # Send unsubscription message
 {"action": "unsubscribe", "boardId": "test-board"}
 ```
+
+### Frequently Asked Questions
+
+#### Q: Why do we need separate connection/disconnection handlers? Can't users just subscribe/unsubscribe?
+
+**A**: Great question! From a **user perspective**, you're absolutely right - they only care about subscribing and unsubscribing from boards. However, we need separate connection handlers because:
+
+1. **AWS Requirement**: `$connect` and `$disconnect` are **required AWS API Gateway WebSocket routes**. AWS automatically triggers these when WebSocket connections are established/closed - they're not optional.
+
+2. **Infrastructure vs. Application**: 
+   - **Connection management** = Infrastructure level (network connectivity)
+   - **Subscription management** = Application level (business logic)
+
+3. **Multi-subscription Support**: One WebSocket connection can subscribe to multiple boards. The connection is the "transport layer" while subscriptions are the "application layer".
+
+4. **Automatic Cleanup**: When a user closes their browser or loses network connection, AWS automatically triggers `$disconnect`, ensuring immediate database cleanup without waiting for broadcast failures.
+
+**Think of it like a phone system**:
+- **Connection** = Picking up the phone (dial tone)
+- **Subscription** = Dialing specific numbers (choosing what to listen to)
+
+You need both layers for a robust system, even though users only interact with the subscription layer.
+
+#### Q: Could we simplify this to only handle subscriptions?
+
+**A**: While tempting, this would create problems:
+
+- **AWS Compliance**: We'd still need empty `$connect`/`$disconnect` handlers to satisfy AWS requirements
+- **Resource Leaks**: No automatic cleanup of stale connections
+- **Monitoring Blind Spots**: No visibility into connection health vs. subscription health
+- **Debugging Difficulty**: Harder to distinguish network issues from application logic issues
+
+The current design follows AWS best practices and separates concerns cleanly between infrastructure and application layers.
 
 The subscription system provides a robust, scalable foundation for real-time messaging while maintaining the event-driven architecture principles of the overall Message Board application.
 
