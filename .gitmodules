@@ -1,0 +1,6 @@
+[submodule "message-board"]
+	path = message-board
+	url = git@github.com:nkcoder/message-board.git
+[submodule "whitehaven"]
+	path = whitehaven
+	url = git@github.com:nkcoder/whitehaven.git
