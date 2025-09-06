@@ -4,3 +4,6 @@
 [submodule "whitehaven"]
 	path = whitehaven
 	url = git@github.com:nkcoder/whitehaven.git
+[submodule "nodejs-core-concepts"]
+	path = nodejs-core-concepts
+	url = git@github.com:viva-leisure/nodejs-core-concepts.git
